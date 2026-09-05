@@ -1140,6 +1140,8 @@
         document.body.appendChild(pgEl);
       }
       pgEl.value = pageNum;
+      pgEl.dispatchEvent(new Event('change', { bubbles: true }));
+      pgEl.dispatchEvent(new Event('input', { bubbles: true }));
 
       const fwdOnly = document.getElementById('cfgForwardOnly').checked;
       document.getElementById('sidebarPageTitle').textContent = `Página ${pageNum}:`;
@@ -1248,6 +1250,10 @@
       // Actualizar Dev Bar
       document.getElementById('devCurrentPage').textContent = `${pageNum} / ${totalPages}`;
       document.getElementById('devQuestionCount').textContent = `${questions.length} preguntas`;
+
+      if (typeof window.__helper_reScan === 'function') {
+        setTimeout(() => window.__helper_reScan(true), 50);
+      }
     }
 
     function selectRadio(qNum, letter, radioId) {
