@@ -1053,6 +1053,16 @@
       const questions = pages[pageNum - 1] || [];
       const totalPages = pages.length;
 
+      // Sincronizar input estándar D2L 'pg'
+      let pgEl = document.querySelector("input[name='pg']");
+      if (!pgEl) {
+        pgEl = document.createElement("input");
+        pgEl.type = "hidden";
+        pgEl.name = "pg";
+        document.body.appendChild(pgEl);
+      }
+      pgEl.value = pageNum;
+
       document.getElementById('sidebarPageTitle').textContent = `Página ${pageNum}:`;
       document.getElementById('bottomPageIndicator').textContent = `Página ${pageNum} de ${totalPages}`;
       document.getElementById('btnPrevPage').disabled = (pageNum === 1);
