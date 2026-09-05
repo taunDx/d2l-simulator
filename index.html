@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="es-mx">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Evaluaciones D2L Brightspace</title>
+  <link rel="preconnect" href="https://s.brightspace.com/lib/bsi/2026.8.276/" crossorigin>
+  <link rel="stylesheet" type="text/css" href="https://s.brightspace.com/lib/bsi/2026.8.276/bsi.css">
+  <link rel="stylesheet" type="text/css" href="https://s.brightspace.com/apps/brightspace/20.26.8.24123/web-packages/D2L.LP.Web.Core.css">
+  <!-- KaTeX para renderizado de fórmulas matemáticas -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+
+  <style>
+    :root {
+      --d2l-color-celestine: #006fbf;
+      --d2l-color-celestine-plus-1: #29a6ff;
+      --d2l-color-celestine-minus-1: #004489;
+      --d2l-color-ferrite: #202122;
+      --d2l-color-tungsten: #494c4e;
+      --d2l-color-mica: #cdd5dc;
+      --d2l-color-gypsum: #e3e9f1;
+      --d2l-color-regolith: #f9fbff;
+      --d2l-color-carnelian: #e87511;
+      --d2l-color-cinnabar: #cd2026;
+      --d2l-color-olivine: #46a661;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Lato', system-ui, -apple-system, sans-serif;
+      background: #f9fbff;
+      color: var(--d2l-color-ferrite);
+    }
+
+    /* ── CONFIGURADOR DASHBOARD ── */
+    #configuratorView {
+      max-width: 960px;
+      margin: 30px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border: 1px solid #e3e9f1;
+      overflow: hidden;
+    }
+    .cfg-header {
+      background: linear-gradient(135deg, #004489 0%, #006fbf 100%);
+      color: #ffffff;
+      padding: 24px 30px;
+    }
+    .cfg-header h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .cfg-header p {
+      margin: 0;
+      font-size: 13px;
+      opacity: 0.85;
+    }
+    .cfg-body {
+      padding: 26px 30px;
+    }
+    .cfg-section {
+      margin-bottom: 24px;
+    }
+    .cfg-section-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #006fbf;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .preset-card {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+    .preset-card:hover {
+      border-color: #006fbf;
+      background: #f0f7fc;
+      transform: translateY(-2px);
+    }
+    .preset-card.active {
+      border-color: #006fbf;
+      background: #e8f3fa;
+      box-shadow: 0 0 0 1px #006fbf;
+    }
+    .preset-card strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+      color: #0f172a;
+    }
+    .preset-card span {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.35;
+      display: block;
+    }
+
+    .cfg-form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .cfg-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .cfg-input, .cfg-select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      background: #fff;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    .cfg-input:focus, .cfg-select:focus {
+      border-color: #006fbf;
+      box-shadow: 0 0 0 3px rgba(0, 111, 191, 0.15);
+    }
+
+    .cfg-checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      padding: 12px 14px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .cfg-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #334155;
+      cursor: pointer;
+      user-select: none;
+    }
+    .cfg-checkbox-label input {
+      width: 16px;
+      height: 16px;
+      accent-color: #006fbf;
+      cursor: pointer;
+    }
+
+    .cfg-actions {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 20px;
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .btn-launch {
+      background: #006fbf;
+      color: #ffffff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-launch:hover {
+      background: #005696;
+      transform: translateY(-1px);
+    }
+
+    /* ── SIMULADOR D2L (PLAYER) ── */
+    #simulatorView {
+      display: none;
+      min-height: 100vh;
+      background: #ffffff;
+    }
+
+    /* Barra D2L Oficial */
+    .d2l-navbar-top {
+      background-color: #000000;
+      color: #ffffff;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+    .d2l-nav-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .d2l-logo-badge {
+      background: #ffffff;
+      color: #004489;
+      font-weight: 900;
+      font-size: 14px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+    .d2l-course-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #f1f5fb;
+    }
+    .d2l-nav-right {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .d2l-user-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .d2l-avatar-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #006fbf;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* Sub-barra Daylight (Menú de curso) */
+    .d2l-course-nav {
+      background: #ffffff;
+      border-bottom: 1px solid #e3e9f1;
+      padding: 0 24px;
+      display: flex;
+      gap: 20px;
+      height: 44px;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #494c4e;
+    }
+    .d2l-course-nav span.active {
+      color: #006fbf;
+      border-bottom: 2px solid #006fbf;
+      padding: 12px 0;
+    }
+
+    /* Contenedor del Quiz / Iframe */
+    #quizIframeContainer {
+      width: 100%;
+      min-height: calc(100vh - 104px);
+      border: none;
+      background: #ffffff;
+    }
+    iframe#ctl_2 {
+      width: 100%;
+      height: calc(100vh - 104px);
+      border: none;
+      display: block;
+    }
+
+    /* ── BARRA DE HERRAMIENTAS DEV (FLOTANTE) ── */
+    #devToolbar {
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(8px);
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 12px 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      z-index: 10000;
+      font-size: 12px;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      border: 1px solid rgba(255,255,255,0.15);
+      transition: all 0.25s ease;
+      max-width: 380px;
+    }
+    #devToolbar.minimized {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    #devToolbar.minimized .dev-expanded-content {
+      display: none;
+    }
+    .dev-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .dev-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .dev-status-pill.idle { background: rgba(148, 163, 184, 0.25); color: #cbd5e1; }
+    .dev-status-pill.active { background: rgba(34, 197, 94, 0.25); color: #4ade80; }
+    .dev-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .dev-btn-group {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .dev-btn {
+      background: rgba(255,255,255,0.1);
+      color: #f1f5f9;
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 7px 10px;
+      border-radius: 5px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+      text-align: center;
+    }
+    .dev-btn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .dev-btn.primary {
+      background: #006fbf;
+      border-color: #008eab;
+      grid-column: span 2;
+      font-weight: 600;
+    }
+    .dev-btn.primary:hover {
+      background: #005a9e;
+    }
+
+    /* Modal estilo D2L */
+    .d2l-mock-dialog-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .d2l-mock-dialog {
+      background: #ffffff;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 480px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .d2l-mock-dialog-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #e3e9f1;
+      font-size: 16px;
+      font-weight: 700;
+      color: #202122;
+    }
+    .d2l-mock-dialog-body {
+      padding: 20px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #494c4e;
+    }
+    .d2l-mock-dialog-footer {
+      padding: 14px 20px;
+      background: #f9fbff;
+      border-top: 1px solid #e3e9f1;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .d2l-btn-primary {
+      background: #006fbf;
+      color: #ffffff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .d2l-btn-secondary {
+      background: transparent;
+      color: #494c4e;
+      border: 1px solid #cdd5dc;
+      padding: 8px 18px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- VISTA 1: CONFIGURADOR / LAUNCHER                           -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div id="configuratorView">
+    <div class="cfg-header">
+      <h1>🎓 Simulador de Evaluaciones D2L Brightspace</h1>
+      <p>Configura entornos de prueba fieles al DOM, la paginación y la arquitectura de los exámenes universitarios.</p>
+    </div>
+
+    <div class="cfg-body">
+      <!-- 1. Presets Rápidos -->
+      <div class="cfg-section">
+        <div class="cfg-section-title">⚡ 1. Selecciona una Plantilla / Preset</div>
+        <div class="preset-grid">
+          <div class="preset-card active" onclick="applyPreset('lectura_critica')">
+            <strong>📖 Parcial Oficial EAFIT (Lectura)</strong>
+            <span>Texto argumentativo de Rodrigo Uprimny, 5 páginas (10 preguntas por página), sin retroceso.</span>
+          </div>
+          <div class="preset-card" onclick="applyPreset('calculo')">
+            <strong>📐 Parcial de Cálculo / Fórmulas</strong>
+            <span>3 páginas con ecuaciones KaTeX/LaTeX, gráficos y selección múltiple con justificación.</span>
+          </div>
+          <div class="preset-card" onclick="applyPreset('quiz_rapido')">
+            <strong>🎯 Quiz Corto (1 Sola Página)</strong>
+            <span>5 preguntas en pantalla continua sin cambio de página para pruebas rápidas de inyección.</span>
+          </div>
+          <div class="preset-card" onclick="applyPreset('asignacion')">
+            <strong>📁 Asignación / Buzón de Tarea</strong>
+            <span>Vista oficial de entrega de taller con instrucciones y caja de desarrollo/comentarios.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Parámetros del Cuestionario -->
+      <div class="cfg-section">
+        <div class="cfg-section-title">⚙️ 2. Parámetros de la Evaluación</div>
+        <div class="cfg-form-row">
+          <div>
+            <label class="cfg-label">Tipo de Evaluación</label>
+            <select id="cfgMode" class="cfg-select" onchange="toggleModeFields()">
+              <option value="quiz">Cuestionario (Quiz con Preguntas)</option>
+              <option value="assignment">Asignación (Buzón de Entrega / Taller)</option>
+            </select>
+          </div>
+          <div>
+            <label class="cfg-label">Título del Curso / Examen</label>
+            <input type="text" id="cfgTitle" class="cfg-input" value="Prueba de Lectura 1 - Universidad EAFIT">
+          </div>
+          <div>
+            <label class="cfg-label">Nombre del Estudiante (en DOM)</label>
+            <input type="text" id="cfgStudent" class="cfg-input" value="JUAN ESTEBAN VELEZ MONTOYA (nombre de usuario: jevelezm1)">
+          </div>
+        </div>
+
+        <div id="quizSpecificFields">
+          <div class="cfg-form-row">
+            <div>
+              <label class="cfg-label">Número Total de Páginas</label>
+              <select id="cfgPages" class="cfg-select">
+                <option value="1">1 Página</option>
+                <option value="2">2 Páginas</option>
+                <option value="3">3 Páginas</option>
+                <option value="5" selected>5 Páginas (Completo)</option>
+              </select>
+            </div>
+            <div>
+              <label class="cfg-label">Preguntas por Página</label>
+              <select id="cfgQuestionsPerPage" class="cfg-select">
+                <option value="2">2 Preguntas</option>
+                <option value="5">5 Preguntas</option>
+                <option value="10" selected>10 Preguntas (Oficial D2L)</option>
+              </select>
+            </div>
+            <div>
+              <label class="cfg-label">Modo de Inserción DOM</label>
+              <select id="cfgRenderMode" class="cfg-select">
+                <option value="iframe" selected>Iframe anidado (#ctl_2 como en EAFIT)</option>
+                <option value="direct">Directo en ventana principal</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Opciones Avanzadas -->
+          <div class="cfg-checkbox-group">
+            <label class="cfg-checkbox-label">
+              <input type="checkbox" id="cfgForwardOnly" checked>
+              <strong>Bloqueo de Retroceso (Sin volver atrás)</strong> — Muestra la alerta oficial de D2L al dar Siguiente.
+            </label>
+            <label class="cfg-checkbox-label">
+              <input type="checkbox" id="cfgIncludeMath" checked>
+              Incluir fórmulas matemáticas (LaTeX / KaTeX)
+            </label>
+            <label class="cfg-checkbox-label">
+              <input type="checkbox" id="cfgIncludeImages" checked>
+              Incluir imágenes de prueba en enunciados
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="cfg-actions">
+        <button type="button" class="btn-launch" onclick="launchSimulation()">
+          🚀 Iniciar Evaluación Simulada
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- VISTA 2: ENTORNO DEL ESTUDIANTE (SIMULADOR D2L)            -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div id="simulatorView">
+    <!-- Navbar Oficial D2L Daylight -->
+    <header class="d2l-navbar-top">
+      <div class="d2l-nav-left">
+        <div class="d2l-logo-badge">EAFIT</div>
+        <div class="d2l-course-title" id="simNavTitle">Prueba de Lectura 1 - Universidad EAFIT</div>
+      </div>
+      <div class="d2l-nav-right">
+        <div class="d2l-user-profile">
+          <div class="d2l-avatar-circle" id="simAvatarInitial">JE</div>
+          <span class="d2l-navigation-s-personal-menu-text" id="simNavStudentName">JUAN ESTEBAN VELEZ MONTOYA</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Sub-barra Daylight -->
+    <div class="d2l-course-nav">
+      <span>Inicio</span>
+      <span>Contenido</span>
+      <span>Calificaciones</span>
+      <span class="active" id="simNavSection">Cuestionarios</span>
+      <span>Comunicaciones</span>
+    </div>
+
+    <!-- Contenedor Principal del Examen / Iframe -->
+    <div id="quizIframeContainer">
+      <iframe id="ctl_2" title="Contenido principal" name="content"></iframe>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- BARRA DEV FLOTANTE (MONITOR Y HERRAMIENTAS DE PRUEBA)      -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div id="devToolbar" class="minimized" onclick="toggleDevToolbar(event)">
+    <div class="dev-top-row">
+      <div style="font-weight:700; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+        🛠️ <span>Dev Helper Lab</span>
+      </div>
+      <div class="dev-status-pill idle" id="devSolverPill">
+        <span class="dev-status-dot"></span>
+        <span id="devSolverStatusText">Helper Inactivo</span>
+      </div>
+    </div>
+
+    <div class="dev-expanded-content">
+      <div style="margin-top:10px; font-size:11px; color:#94a3b8; line-height:1.4;">
+        <div>Página simulada: <strong id="devCurrentPage" style="color:#f1f5f9;">-</strong></div>
+        <div>Preguntas en DOM: <strong id="devQuestionCount" style="color:#f1f5f9;">-</strong></div>
+      </div>
+
+      <div class="dev-btn-group">
+        <button type="button" class="dev-btn primary" onclick="injectHelperScript(event)">
+          💉 Inyectar Script Helper (Simular consola)
+        </button>
+        <button type="button" class="dev-btn" onclick="triggerFastMouse(event)">
+          ⚡ Simular Sacudida Mouse (3200px)
+        </button>
+        <button type="button" class="dev-btn" onclick="backToConfig(event)">
+          ⚙️ Volver a Configuración
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- DIÁLOGO MODAL D2L OFICIAL ("No permitir retroceder")       -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="d2l-mock-dialog-overlay" id="d2lModalOverlay">
+    <div class="d2l-mock-dialog">
+      <div class="d2l-mock-dialog-header">Confirmación</div>
+      <div class="d2l-mock-dialog-body" id="d2lModalBody">
+        Si avanza a la página siguiente, no podrá volver a ésta. ¿Está seguro de que desea continuar?
+      </div>
+      <div class="d2l-mock-dialog-footer">
+        <button type="button" class="d2l-btn-secondary" onclick="closeD2LModal(false)">Cancelar</button>
+        <button type="button" class="d2l-btn-primary" onclick="closeD2LModal(true)">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- LÓGICA JAVASCRIPT DEL SIMULADOR                            -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <script>
+    // ── Banco de Preguntas Oficiales (Extraídas del HTML real que compartiste) ──
+    const QUESTION_BANK = [
+      {
+        num: 1,
+        title: "1. IDENTIFICA DATOS ESPECÍFICOS DEL TEXTO",
+        sub: "1.1. Reconoce la situación comunicativa en los textos<br>1.1.1. Identifica el tema del texto",
+        prompt: "El tema del texto es:",
+        options: [
+          "la distinción entre las mayorías y las minorías",
+          "la distinción entre emociones dañinas y la razón práctica",
+          "la polarización ideológica",
+          "la deliberación democrática y la polarización corrosiva"
+        ],
+        correctIndex: 3
+      },
+      {
+        num: 2,
+        title: "1.1.2. Identifica la idea central/tesis del texto",
+        sub: "",
+        prompt: "La idea central que defiende el autor del texto es:",
+        options: [
+          "el debate vigoroso y la polarización perniciosa son conceptos idénticos que debilitan la cohesión social.",
+          "la polarización es siempre un peligro para la democracia y debe ser evitada a toda costa a través del diálogo.",
+          "la deliberación pública, aunque útil en el contexto político, debe ser limitada para evitar que se convierta en una fuente de polarización.",
+          "el debate democrático es indispensable en la sociedad, pero al mismo tiempo se requiere prevenir y enfrentar la polarización corrosiva."
+        ],
+        correctIndex: 3
+      },
+      {
+        num: 3,
+        title: "1.1.3. Reconoce al autor y su rol en el discurso",
+        sub: "",
+        prompt: "El autor se posiciona activamente en el debate. Una de las siguientes opciones describe con mayor precisión el rol o la postura que adopta dentro de su propio discurso:",
+        options: [
+          "es el único responsable de que el lector comprenda el concepto de democracia tal como él lo concibió, sin importar el contexto de la lectura.",
+          "establece una voz sobre las amenazas a la democracia, utiliza su estilo y sus propias selecciones lingüísticas para proponer una postura en el debate.",
+          "es un simple transmisor de la información sobre los problemas que enfrenta la democracia, sin ninguna influencia en la interpretación final del mensaje.",
+          "documenta los hechos sobre la democracia de manera objetiva, sin que intervenga su propio punto de vista."
+        ],
+        correctIndex: 1
+      },
+      {
+        num: 4,
+        title: "1.1.4. Identifica el contexto (textual, situacional y sociocultural) en el que se produce el texto",
+        sub: "",
+        prompt: "El contexto en el cual se enmarca el contenido del texto es:",
+        options: [
+          "situacional, debido a que el autor hace una intervención deliberada en un debate contemporáneo y urgente, que busca persuadir sobre una visión matizada de la polarización.",
+          "lingüístico exclusivamente, porque se centra en el uso de palabras técnicas y figuras retóricas para un análisis puramente formal de la argumentación.",
+          "sociocultural, ya que es un mero producto de la sociedad, que refleja pasivamente las ideas y problemas culturales heredados de un pasado conflictivo y no resuelto.",
+          "ni situacional ni sociocultural, pues solo puede ser entendido como un documento que narra los eventos de polarización producto de causas aleatorias, sin posibilidad de atribuirlo a contextos específicos."
+        ],
+        correctIndex: 0
+      },
+      {
+        num: 5,
+        title: "1.2.1. Localiza información en la micro y macroestructura de los textos",
+        sub: "1.2.1. Reconoce elementos lingüísticos de la cohesión textual",
+        prompt: "En el siguiente fragmento del párrafo 4: “<u>que son palabras</u> que a veces asimilamos, pero <u>que en cierta forma son opuestas</u>.”, los pronombres relativos “que” cumplen una función esencial para la cohesión y el desarrollo de la idea. Seleccione entre las siguientes opciones la que describe su referente y la función cohesiva que cumplen:",
+        options: [
+          "aluden a la definición por fuera del texto de \"diálogo\" y \"polémica\" encontrada en el Diccionario de la Real Academia Española, la cual será citada posteriormente para dar autoridad al argumento.",
+          "anticipan la explicación sobre las \"raíces etimológicas\" que se proporcionará más adelante en el texto y funciona como un adelanto de esa información.",
+          "se refieren a los sustantivos \"el diálogo y la polémica\", ya mencionados. Su función es introducir su frecuente asimilación y su oposición esencial para evitar la repetición innecesaria de los términos.",
+          "son ambiguos y podrían referirse tanto a \"Albert Camus\" como a \"la distinción\", lo que genera una confusión momentánea sobre si son las palabras o el autor las que son \"opuestas\"."
+        ],
+        correctIndex: 2
+      },
+      {
+        num: 6,
+        title: "1.2.2. Relaciones léxicas y autoridades académicas",
+        sub: "",
+        prompt: "En el párrafo 12 el autor emplea la siguiente frase: “[…] lo que <u>algunos autores</u> llaman la división ideológica”. Seleccione entre las siguientes opciones el tipo de referencia al que aluden los términos subrayados y su propósito principal en el texto:",
+        options: [
+          "es una elipsis de autoridades académicas reconocidas por todo tipo de lectores, incluso los no especializados, que se presenta con una carga emotiva exagerada.",
+          "es una cita textual directa de autores específicos como Jennifer McCoy o Albert Camus, antes mencionados, para respaldar la argumentación con una fuente concreta.",
+          "señala por fuera del texto a autoridades no nombradas para presentar la distinción entre división ideológica y afectiva como un conocimiento especializado y establecido.",
+          "retoma información vieja: el concepto de \"fanatismo\" que ya ha sido mencionado, con el fin de explicar en detalle en qué consiste este fenómeno psicológico."
+        ],
+        correctIndex: 2
+      },
+      {
+        num: 7,
+        title: "1.2.3. Semántica y adjetivación",
+        sub: "",
+        prompt: "El autor emplea en el párrafo 10 los términos “corrosiva” y “perniciosa” para calificar el concepto de polarización. Seleccione entre las siguientes opciones la que describe de manera adecuada la relación entre estas palabras y el propósito de su uso en el texto.",
+        options: [
+          "sinonimia, porque ambos adjetivos funcionan como equivalentes y se refuerzan mutuamente. Su función es enfatizar y cargar negativamente el concepto de polarización, sin ningún tipo de matiz positivo.",
+          "repetición, pues utiliza dos adjetivos extremos para impactar emocionalmente al lector, aunque esto implique sacrificar la precisión conceptual de la definición de polarización.",
+          "elipsis, debido a que se omite el nexo \"y\" entre ambos adjetivos, es decir que la forma completa sería \"corrosiva y perniciosa\". Su finalidad es agilizar el ritmo de la lectura mediante la economía sintáctica.",
+          "antonimia, ya que busca establecer una gradación entre dos tipos de polarización: una menos dañina la \"corrosiva\" y otra extremadamente destructiva la \"perniciosa\", para así matizar el análisis."
+        ],
+        correctIndex: 0
+      },
+      {
+        num: 8,
+        title: "1.2.4. Oposición léxica y argumentación",
+        sub: "",
+        prompt: "En el párrafo 9, el autor utiliza los términos “opositor” y “enemigo” para referirse al mismo actor en el contexto de la polémica. Una de las siguientes opciones describe el tipo de relación léxica que establece y su propósito en la argumentación:",
+        options: [
+          "antonimia, porque busca contrastar dos conceptos diametralmente opuestos: el \"opositor\" (aceptable) y el \"enemigo\" (inaceptable), para mostrar los dos extremos del debate político.",
+          "elipsis, pues se omite el verbo \"ser\" entre \"opositor\" y \"enemigo\", ya que la estructura completa sería \"el opositor [es] un enemigo\", con el único objetivo de economía lingüística.",
+          "repetición, ya que la figura del \"opositor\" se convierte en \"enemigo\" con el único fin de crear un efecto dramático en el lector, sin una base real en la definición de polémica.",
+          "sinonimia, pues el \"enemigo\" funciona como sustituto de \"opositor\", pero con una carga negativa mucho mayor. Su función es demostrar el proceso donde el rival legítimo se transforma en antagonista absoluto."
+        ],
+        correctIndex: 3
+      },
+      {
+        num: 9,
+        title: "1.2.5. Deixis y anáfora textual",
+        sub: "",
+        prompt: "En el párrafo 13 el autor emplea la expresión “estos grupos” que tiene como referente… y cumple la siguiente función…:",
+        options: [
+          "\"los habitantes de Colombia\" que aparecerá en la oración siguiente, su función es servir como un puente para introducir a los actores del conflicto.",
+          "\"los partidos liberal y conservador\". Se emplea para evitar la repetición de estos nombres y crear cohesión entre su mención y la descripción de su relación conflictiva.",
+          "grupos políticos contemporáneos, que están por fuera del texto y son diferentes a los partidos tradicionales, con el fin de establecer un paralelo entre el pasado y el presente.",
+          "el sustantivo \"partidos\", que se ha cambiado por un sinónimo y su objetivo es garantizar el principio de economía lingüística y para evitar la repetición."
+        ],
+        correctIndex: 1
+      },
+      {
+        num: 10,
+        title: "1.2.6. Campos semánticos y polarización",
+        sub: "",
+        prompt: "El autor utiliza en el párrafo 11 un conjunto de términos como “divisiones”, “enfrentamiento”, “rígida”, “oposición” y “enemiga”. Seleccione entre las siguientes opciones la que describe de manera adecuada la relación entre estas palabras y su propósito en la argumentación:",
+        options: [
+          "señalan, por fuera del texto, al concepto de \"conflicto realista\" de la psicología social, aunque sin mencionarlo. por lo que su función es apelar a un marco teórico.",
+          "son sinónimos imperfectos que el autor utiliza de forma intercambiable por descuido, lo que genera una cierta redundancia y ralentiza el ritmo del párrafo sin añadirle valor argumentativo.",
+          "se trata de una serie de antónimos que buscan mostrar los distintos matices y posturas que pueden existir dentro de un espectro político diverso y pluralista.",
+          "establecen entre sí una relación de contigüidad, su función es crear una red léxica coherente que refleje la naturaleza inflexible, antagónica y destructiva de la polarización corrosiva."
+        ],
+        correctIndex: 3
+      }
+    ];
+
+    // Texto de Lectura Crítica Oficial
+    const LECTURA_CRITICA_PASSAGE_HTML = `
+      <div style="text-align: left; width: 100%; margin: 0px 0px 10px;">
+        <h2 class="dhdg_1 vui-heading-2 d2l-quiz-skip-nav-target" id="z_g" tabindex="0">Texto: La democracia: entre la deliberación robusta y la polarización corrosiva</h2>
+        <div style="text-align:left;margin:0.5em 0em 0.9em 0em;">
+          <div class="d2l-htmlblock-untrusted d2l-htmlblock-inline">
+            <d2l-html-block html="&lt;p style=&quot;background: whitesmoke;margin: 0cm;font-size: 12pt;font-family: Calibri, sans-serif;&quot;&gt;&lt;b&gt;&lt;span style=&quot;font-family: Cambria, serif;text-transform: uppercase;&quot;&gt;Imaginar la democracia&lt;/span&gt;&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;background: whitesmoke;margin: 0cm;font-size: 12pt;font-family: Calibri, sans-serif;&quot;&gt;&lt;span style=&quot;font-family: Cambria, serif;&quot;&gt;11 Agosto 2025 06:08 am&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;background: whitesmoke;margin: 0cm;font-size: 14pt;font-family: Cambria, serif;&quot;&gt;&lt;b&gt;La democracia: entre la deliberación robusta y la polarización corrosiva&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;font-family: Cambria, serif;&quot;&gt;Por: Rodrigo Uprimny&lt;/p&gt;&lt;p&gt;1. La polarización está en el centro de las discusiones contemporáneas en torno a la crisis de la democracia. Algunos argumentan que ésta se ha incrementado y representa una gran amenaza, mientras que otros consideran que no es así: que sólo los tibios le temen a la radicalización.&lt;/p&gt;&lt;p&gt;2. En este artículo abordo esta discusión, pero defiendo una tesis un poco distinta: creo que el debate vigoroso entre posiciones políticas diversas fortalece la democracia ya que permite una deliberación pública robusta...&lt;/p&gt;"></d2l-html-block>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // ── Estado Global del Simulador ──
+    let simState = {
+      mode: "quiz",
+      title: "Prueba de Lectura 1 - Universidad EAFIT",
+      studentName: "JUAN ESTEBAN VELEZ MONTOYA (nombre de usuario: jevelezm1)",
+      totalPages: 5,
+      questionsPerPage: 10,
+      renderMode: "iframe",
+      forwardOnly: true,
+      includeMath: true,
+      includeImages: true,
+      currentPage: 1,
+      answers: {}
+    };
+
+    // ── Presets ──
+    function applyPreset(presetKey) {
+      document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      const modeSel = document.getElementById('cfgMode');
+      const titleInp = document.getElementById('cfgTitle');
+      const pagesSel = document.getElementById('cfgPages');
+      const qPerPageSel = document.getElementById('cfgQuestionsPerPage');
+      const fwdOnlyChk = document.getElementById('cfgForwardOnly');
+      const mathChk = document.getElementById('cfgIncludeMath');
+      const imgChk = document.getElementById('cfgIncludeImages');
+
+      if (presetKey === 'lectura_critica') {
+        modeSel.value = 'quiz';
+        titleInp.value = 'Prueba de Lectura 1 - Universidad EAFIT';
+        pagesSel.value = '5';
+        qPerPageSel.value = '10';
+        fwdOnlyChk.checked = true;
+        mathChk.checked = false;
+        imgChk.checked = true;
+      } else if (presetKey === 'calculo') {
+        modeSel.value = 'quiz';
+        titleInp.value = 'Cálculo Integral - Parcial 2 - EAFIT';
+        pagesSel.value = '3';
+        qPerPageSel.value = '5';
+        fwdOnlyChk.checked = true;
+        mathChk.checked = true;
+        imgChk.checked = true;
+      } else if (presetKey === 'quiz_rapido') {
+        modeSel.value = 'quiz';
+        titleInp.value = 'Quiz Rápido de Comprobación';
+        pagesSel.value = '1';
+        qPerPageSel.value = '5';
+        fwdOnlyChk.checked = false;
+        mathChk.checked = false;
+        imgChk.checked = false;
+      } else if (presetKey === 'asignacion') {
+        modeSel.value = 'assignment';
+        titleInp.value = 'Taller 1: Análisis Sostenible y Modelación';
+        fwdOnlyChk.checked = false;
+      }
+      toggleModeFields();
+    }
+
+    function toggleModeFields() {
+      const mode = document.getElementById('cfgMode').value;
+      document.getElementById('quizSpecificFields').style.display = (mode === 'assignment' ? 'none' : 'block');
+    }
+
+    // ── Lanzar Simulación ──
+    function launchSimulation() {
+      simState.mode = document.getElementById('cfgMode').value;
+      simState.title = document.getElementById('cfgTitle').value || 'Evaluación D2L';
+      simState.studentName = document.getElementById('cfgStudent').value || 'Estudiante EAFIT';
+      simState.totalPages = parseInt(document.getElementById('cfgPages').value) || 1;
+      simState.questionsPerPage = parseInt(document.getElementById('cfgQuestionsPerPage').value) || 5;
+      simState.renderMode = document.getElementById('cfgRenderMode').value;
+      simState.forwardOnly = document.getElementById('cfgForwardOnly').checked;
+      simState.includeMath = document.getElementById('cfgIncludeMath').checked;
+      simState.includeImages = document.getElementById('cfgIncludeImages').checked;
+      simState.currentPage = 1;
+      simState.answers = {};
+
+      // Actualizar Navbar D2L
+      document.getElementById('simNavTitle').textContent = simState.title;
+      const shortName = simState.studentName.split('(')[0].trim();
+      document.getElementById('simNavStudentName').textContent = shortName;
+      const initials = shortName.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase() || 'AL';
+      document.getElementById('simAvatarInitial').textContent = initials;
+      document.getElementById('simNavSection').textContent = (simState.mode === 'assignment' ? 'Asignaciones' : 'Cuestionarios');
+
+      // Cambiar vistas
+      document.getElementById('configuratorView').style.display = 'none';
+      document.getElementById('simulatorView').style.display = 'block';
+
+      // Cargar contenido
+      renderPage(1);
+      updateDevToolbar();
+    }
+
+    function backToConfig(e) {
+      if (e) e.stopPropagation();
+      document.getElementById('simulatorView').style.display = 'none';
+      document.getElementById('configuratorView').style.display = 'block';
+    }
+
+    // ── Generar HTML de Preguntas D2L Real ──
+    function generateQuestionHTML(q, pageIdx) {
+      const tid = 1276000 + q.num;
+      const tvid = 1391800 + q.num;
+      const objId = 5502500 + q.num;
+      const radioGroupName = `tAtom${tid}_${tvid}`;
+
+      let mathFormula = "";
+      if (simState.includeMath && q.num % 2 === 0) {
+        mathFormula = `<p style="margin:8px 0; color:#006fbf;"><strong>Fórmula del problema:</strong> \\( f(x) = \\int_0^x \\frac{e^{-t^2}}{\\sqrt{\\pi}} dt \\quad \\text{donde} \\quad \\lim_{x\\to\\infty} f(x) = \\frac{1}{2} \\)</p>`;
+      }
+
+      let optionsRows = q.options.map((opt, oIdx) => {
+        const optLetter = String.fromCharCode(97 + oIdx); // a, b, c, d
+        const optId = `${radioGroupName}_o${oIdx}_id`;
+        return `
+          <tr class="d2l-rowshadeonhover" style="cursor:pointer;" onclick="selectRadioInSim('${radioGroupName}', '${optId}', ${q.num}, '${optLetter.toUpperCase()}')">
+            <td class="d_tl d_tt d_tn" style="vertical-align:top; padding:6px;">
+              <div class="dco d2l-qc-controls-container">
+                <input type="radio" class="d2l-radio" name="${radioGroupName}" id="${optId}" value="${optLetter}">
+              </div>
+            </td>
+            <td class="d_tl d_tb d_tw" style="width:100%; vertical-align:top; padding:6px;">
+              <div class="dco d2l-quiz-answer-container">
+                <d2l-html-block html="&lt;table style=&quot;width: 100%;&quot;&gt;&lt;tr&gt;&lt;td style=&quot;vertical-align:top; width:25px;&quot;&gt;&lt;p&gt;${optLetter})&amp;#160;&lt;/p&gt;&lt;/td&gt;&lt;td&gt;&lt;p style=&quot;margin:0; font-family: Calibri, sans-serif; font-size:12pt;&quot;&gt;${opt}&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;"></d2l-html-block>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <!-- Encabezado de Pregunta -->
+        ${q.title ? `<div style="width:100%; margin-top:2.5em; margin-bottom:0.5em;"><h2 class="dhdg_1 vui-heading-2">${q.title}</h2></div>` : ''}
+        ${q.sub ? `<div style="margin-bottom:0.8em;"><div class="d2l-htmlblock-untrusted"><d2l-html-block html="&lt;p&gt;&lt;b&gt;${q.sub}&lt;/b&gt;&lt;/p&gt;"></d2l-html-block></div></div>` : ''}
+
+        <div class="dco d2l-quiz-question-header-row" style="margin-top:1.5em;">
+          <div class="dco_c" style="display:flex; align-items:center; justify-content:space-between;">
+            <div class="dhdg_2" style="display:flex; align-items:center; gap:8px;">
+              <h2 class="dhdg_2 vui-heading-3 dhdg_f" style="margin:0; font-size:18px;"><strong>Pregunta ${q.num}</strong></h2>
+              <d2l-save-status id="oSs_${objId}"></d2l-save-status>
+            </div>
+            <div class="dco d2l-quiz-question-bookmark-container">
+              <span style="font-size:11px; color:#64748b;">(1 punto)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contenedor Oficial D2L Autosave -->
+        <div class="dco d2l-quiz-question-autosave-container" style="margin-bottom:2em;">
+          <div class="dco_c">
+            <input type="hidden" class="d2l-quiz-question-autosave-tid" value="${tid}">
+            <input type="hidden" class="d2l-quiz-question-autosave-tvid" value="${tvid}">
+            <input type="hidden" class="d2l-quiz-question-autosave-is-saved" value="False">
+            <input type="hidden" class="d2l-quiz-question-clear-placeholderId" value="oCs_${objId}">
+            <input type="hidden" class="d2l-quiz-question-object-id" value="${objId}">
+            <input type="hidden" class="d2l-quiz-question-autosave-page" value="${pageIdx}">
+            <input type="hidden" class="d2l-quiz-question-autosave-question-num" value="${q.num}">
+            <input type="hidden" class="d2l-quiz-question-autosave-ssId" value="oSs_${objId}">
+
+            <!-- Enunciado de la Pregunta -->
+            <div style="text-align:left; margin:0.8em 0;">
+              <div id="ctl_${q.num}">
+                <d2l-html-block html="&lt;p style=&quot;font-size:12pt; font-family: Calibri, sans-serif; margin:0;&quot;&gt;${q.prompt}&lt;/p&gt;"></d2l-html-block>
+                ${mathFormula}
+              </div>
+            </div>
+
+            <!-- Fieldset Oficial de Opciones dfs_m -->
+            <fieldset class="dfs_m block_disp" style="width:100%; border:none; padding:0; margin:0;">
+              <legend class="dfs_l rs_skip d2l-offscreen" style="display:none;"><span>Pregunta ${q.num} opciones:</span></legend>
+              <div class="dfs_c">
+                <table summary="" class="d_t" style="width:100%; border-collapse:collapse;">
+                  <tbody>
+                    ${optionsRows}
+                  </tbody>
+                </table>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      `;
+    }
+
+    // ── Renderizar Página de Cuestionario ──
+    function renderPage(pageNum) {
+      simState.currentPage = pageNum;
+
+      if (simState.mode === 'assignment') {
+        renderAssignmentView();
+        return;
+      }
+
+      // Calcular slice de preguntas
+      const startIndex = (pageNum - 1) * simState.questionsPerPage;
+      const pageQuestions = [];
+      for (let i = 0; i < simState.questionsPerPage; i++) {
+        const qIndex = (startIndex + i) % QUESTION_BANK.length;
+        const baseQ = QUESTION_BANK[qIndex];
+        pageQuestions.push({
+          ...baseQ,
+          num: startIndex + i + 1
+        });
+      }
+
+      // Generar HTML interno completo del examen
+      const questionsMarkup = pageQuestions.map(q => generateQuestionHTML(q, pageNum)).join('<hr style="border:none; border-top:1px solid #e2e8f0; margin:20px 0;">');
+
+      const isFirstPage = (pageNum === 1);
+      const isLastPage = (pageNum >= simState.totalPages);
+
+      const pageFullHTML = `
+        <!DOCTYPE html>
+        <html lang="es-mx">
+        <head>
+          <meta charset="UTF-8">
+          <title>${simState.title}</title>
+          <link rel="stylesheet" type="text/css" href="https://s.brightspace.com/lib/bsi/2026.8.276/bsi.css">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"><\/script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"><\/script>
+          <style>
+            body { font-family: 'Lato', system-ui, sans-serif; padding: 24px; max-width: 820px; margin: 0 auto; color: #202122; background: #ffffff; }
+            .d2l-button {
+              background: #f1f5fb; color: #006fbf; border: 1px solid #cdd5dc; padding: 8px 18px; border-radius: 4px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.15s;
+            }
+            .d2l-button:hover:not(:disabled) { background: #e3e9f1; border-color: #006fbf; }
+            .d2l-button[primary] { background: #006fbf; color: #ffffff; border-color: #006fbf; }
+            .d2l-button[primary]:hover:not(:disabled) { background: #005696; }
+            .d2l-button:disabled { opacity: 0.45; cursor: not-allowed; }
+            .d2l-quiz-navbar { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 18px; border-radius: 6px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+            .d2l-rowshadeonhover:hover { background-color: rgba(0, 111, 191, 0.05); }
+          </style>
+        </head>
+        <body class="d2l-body d2l-typography daylight" id="d2l_body">
+          <div id="d_content">
+            <!-- Metadata de Usuario en DOM (Para que el extractor de nombre lo encuentre) -->
+            <div style="display:none;" id="d2l_user_meta">
+              <label class="d2l-label-text">Usuario actual</label>
+              <div>${simState.studentName}</div>
+            </div>
+
+            <!-- Barra Superior de Paginación -->
+            <div class="dco d2l-quiz-navbar">
+              <div>
+                <button type="button" class="d2l-button" id="btnPrev" ${isFirstPage ? 'disabled' : ''} onclick="parent.handleNavigationClick(-1)">
+                  &lt; Página anterior
+                </button>
+                <button type="button" primary class="d2l-button" id="btnNext" style="margin-left:8px;" onclick="parent.handleNavigationClick(1)">
+                  ${isLastPage ? 'Finalizar Examen' : 'Página siguiente &gt;'}
+                </button>
+              </div>
+              <strong style="font-size:13px; color:#475569;">Página ${pageNum} de ${simState.totalPages}</strong>
+            </div>
+
+            <!-- Texto de Lectura (Si es página 1) -->
+            ${pageNum === 1 ? LECTURA_CRITICA_PASSAGE_HTML : ''}
+
+            <!-- Formulario de Preguntas -->
+            <form id="d2l_form" onsubmit="return false;">
+              ${questionsMarkup}
+            </form>
+
+            <!-- Barra Inferior de Paginación -->
+            <div class="dco d2l-quiz-navbar" style="margin-top:30px;">
+              <div>
+                <button type="button" class="d2l-button" ${isFirstPage ? 'disabled' : ''} onclick="parent.handleNavigationClick(-1)">
+                  &lt; Página anterior
+                </button>
+                <button type="button" primary class="d2l-button" style="margin-left:8px;" onclick="parent.handleNavigationClick(1)">
+                  ${isLastPage ? 'Finalizar Examen' : 'Página siguiente &gt;'}
+                </button>
+              </div>
+              <strong style="font-size:13px; color:#475569;">Página ${pageNum} de ${simState.totalPages}</strong>
+            </div>
+          </div>
+
+          <script>
+            // Convertir d2l-html-block en elementos visibles si el webcomponent no está registrado
+            document.querySelectorAll('d2l-html-block').forEach(el => {
+              const html = el.getAttribute('html');
+              if (html) {
+                const div = document.createElement('div');
+                div.innerHTML = html;
+                el.parentNode.replaceChild(div, el);
+              }
+            });
+
+            // Renderizar LaTeX con KaTeX
+            if (window.renderMathInElement) {
+              renderMathInElement(document.body, {
+                delimiters: [
+                  {left: '$$', right: '$$', display: true},
+                  {left: '\\(', right: '\\)', display: false},
+                  {left: '$', right: '$', display: false}
+                ],
+                throwOnError: false
+              });
+            }
+          <\/script>
+        </body>
+        </html>
+      `;
+
+      const iframe = document.getElementById('ctl_2');
+      iframe.srcdoc = pageFullHTML;
+
+      updateDevToolbar();
+    }
+
+    // ── Manejador de Navegación (Página siguiente / anterior) ──
+    let pendingNavDirection = 0;
+    function handleNavigationClick(direction) {
+      if (direction === -1) {
+        if (simState.forwardOnly) {
+          alert("En este cuestionario no está permitido retroceder.");
+          return;
+        }
+        if (simState.currentPage > 1) {
+          renderPage(simState.currentPage - 1);
+        }
+        return;
+      }
+
+      // Avanzar de página
+      if (simState.currentPage >= simState.totalPages) {
+        alert("🎉 Has llegado al final del cuestionario simulado.");
+        return;
+      }
+
+      if (simState.forwardOnly) {
+        pendingNavDirection = 1;
+        document.getElementById('d2lModalBody').textContent =
+          "Si avanza a la página siguiente, no podrá volver a ésta. ¿Está seguro de que desea continuar?";
+        document.getElementById('d2lModalOverlay').style.display = 'flex';
+      } else {
+        renderPage(simState.currentPage + 1);
+      }
+    }
+
+    function closeD2LModal(confirmed) {
+      document.getElementById('d2lModalOverlay').style.display = 'none';
+      if (confirmed && pendingNavDirection === 1) {
+        renderPage(simState.currentPage + 1);
+      }
+      pendingNavDirection = 0;
+    }
+
+    // Selección de Radio en Simulador
+    function selectRadioInSim(groupName, optId, qNum, letter) {
+      simState.answers[qNum] = letter;
+      const iframe = document.getElementById('ctl_2');
+      const radio = iframe.contentDocument?.getElementById(optId);
+      if (radio) radio.checked = true;
+    }
+
+    // ── Vista de Asignación / Buzón D2L ──
+    function renderAssignmentView() {
+      const assignmentHTML = `
+        <!DOCTYPE html>
+        <html lang="es-mx">
+        <head>
+          <meta charset="UTF-8">
+          <link rel="stylesheet" type="text/css" href="https://s.brightspace.com/lib/bsi/2026.8.276/bsi.css">
+          <style>
+            body { font-family: 'Lato', system-ui, sans-serif; padding: 26px; max-width: 860px; margin: 0 auto; color: #202122; }
+            .d2l-panel { background: #fff; border: 1px solid #e3e9f1; border-radius: 8px; padding: 22px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+            .d2l-btn-upload { background: #006fbf; color: #fff; border: none; padding: 10px 22px; border-radius: 4px; font-weight:700; cursor:pointer; }
+            .dropzone { border: 2px dashed #006fbf; background: #f0f7fc; border-radius: 8px; padding: 36px; text-align: center; color: #004489; cursor: pointer; margin: 16px 0; }
+          </style>
+        </head>
+        <body class="d2l-body daylight">
+          <div style="display:none;" id="d2l_user_meta">
+            <label class="d2l-label-text">Usuario actual</label>
+            <div>${simState.studentName}</div>
+          </div>
+
+          <h1 style="font-size:22px; color:#202122; margin-bottom:4px;">${simState.title}</h1>
+          <p style="color:#64748b; font-size:13px; margin-top:0;">Vencimiento: 15 de septiembre de 2026 23:59</p>
+
+          <div class="d2l-panel">
+            <h3 style="margin-top:0; font-size:16px; color:#006fbf;">Instrucciones de la Asignación</h3>
+            <p style="font-size:14px; line-height:1.6;">
+              Revisa por favor las instrucciones publicadas en la plataforma. Debes resolver el análisis del caso de sostenibilidad y adjuntar tu archivo en formato PDF o realizar el desarrollo en el editor a continuación.
+            </p>
+          </div>
+
+          <div class="d2l-panel">
+            <h3 style="margin-top:0; font-size:16px;">Entrega de Archivos</h3>
+            <div class="dropzone" onclick="alert('Simulación: selector de archivos de D2L abierto.')">
+              📥 <strong>Arrastra y suelta archivos aquí</strong> o haz clic para examinar tu PC
+            </div>
+            <label style="display:block; font-size:13px; font-weight:600; margin-top:16px;">Comentarios / Justificación:</label>
+            <textarea style="width:100%; height:120px; border:1px solid #cbd5e1; border-radius:6px; padding:10px; font-family:inherit; margin-top:6px;" placeholder="Escribe aquí tus comentarios para el profesor..."></textarea>
+            <div style="margin-top:18px;">
+              <button type="button" class="d2l-btn-upload" onclick="alert('¡Asignación entregada con éxito en el simulador!')">Enviar Asignación</button>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+      document.getElementById('ctl_2').srcdoc = assignmentHTML;
+      updateDevToolbar();
+    }
+
+    // ── Dev Toolbar & Telemetría ──
+    function toggleDevToolbar(e) {
+      if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+      document.getElementById('devToolbar').classList.toggle('minimized');
+    }
+
+    function updateDevToolbar() {
+      document.getElementById('devCurrentPage').textContent = `${simState.currentPage} / ${simState.totalPages}`;
+      document.getElementById('devQuestionCount').textContent = (simState.mode === 'assignment' ? 'Modo Asignación' : `${simState.questionsPerPage} preguntas`);
+    }
+
+    // 💉 Inyectar Script Helper Oficial
+    async function injectHelperScript(e) {
+      if (e) e.stopPropagation();
+      const pill = document.getElementById('devSolverPill');
+      const text = document.getElementById('devSolverStatusText');
+
+      try {
+        pill.className = 'dev-status-pill idle';
+        text.textContent = 'Cargando script...';
+
+        // Intenta cargar desde el Worker desplegado o desde ruta relativa
+        const res = await fetch('https://black-pollo-0027.agudeloculon69.workers.dev/').catch(() => null);
+        let scriptCode = "";
+        if (res && res.ok) {
+          scriptCode = await res.text();
+        } else {
+          // Fallback al archivo local
+          const localRes = await fetch('../client_friend.js');
+          scriptCode = await localRes.text();
+        }
+
+        // Ejecutar en la ventana principal (o en el iframe según el target)
+        const runTarget = (simState.renderMode === 'iframe' ? window : window);
+        runTarget.eval(scriptCode);
+
+        pill.className = 'dev-status-pill active';
+        text.textContent = 'Helper Activo ✓';
+        alert('💉 Script inyectado con éxito en el simulador. Observa los indicadores disimulados o abre la consola.');
+      } catch (err) {
+        pill.className = 'dev-status-pill idle';
+        text.textContent = 'Error Inyección';
+        alert('Error inyectando el script: ' + err.message);
+      }
+    }
+
+    // Simular sacudida violenta del mouse para disparar pausa/timeout
+    function triggerFastMouse(e) {
+      if (e) e.stopPropagation();
+      if (typeof window.__activarPausaHelper === 'function') {
+        window.__activarPausaHelper(true);
+        alert('⚡ Sacudida de seguridad ejecutada: Pausa de 10s activada en Helper y Quiz.');
+      } else {
+        alert('Primero debes inyectar el script con el botón "Inyectar Script Helper".');
+      }
+    }
+
+    // Monitor de estado en vivo
+    setInterval(() => {
+      const isActive = !!window.__solverActivo;
+      const pill = document.getElementById('devSolverPill');
+      const text = document.getElementById('devSolverStatusText');
+      if (isActive) {
+        pill.className = 'dev-status-pill active';
+        text.textContent = 'Helper Activo ✓';
+      }
+    }, 1500);
+  </script>
+</body>
+</html>
