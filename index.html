@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulador Oficial D2L Brightspace - EAFIT</title>
+  <title>Simulador de Evaluaciones D2L Brightspace</title>
+  
+  <!-- Estilos base de D2L Brightspace -->
   <link rel="preconnect" href="https://s.brightspace.com/lib/bsi/2026.8.276/" crossorigin>
   <link rel="stylesheet" type="text/css" href="https://s.brightspace.com/lib/bsi/2026.8.276/bsi.css">
   <link rel="stylesheet" type="text/css" href="https://s.brightspace.com/apps/brightspace/20.26.8.24123/web-packages/D2L.LP.Web.Core.css">
-  
-  <!-- KaTeX para renderizado de fórmulas matemáticas idéntico a D2L -->
+
+  <!-- KaTeX para fórmulas matemáticas -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
@@ -25,13 +27,14 @@
       --d2l-color-regolith: #f9fbff;
       --d2l-color-olivine: #46a661;
       --d2l-color-carnelian: #e87511;
+      --d2l-color-cinnabar: #cd2026;
     }
 
     * { box-sizing: border-box; }
     html, body {
       margin: 0;
       padding: 0;
-      height: 100%;
+      min-height: 100%;
       font-family: 'Lato', system-ui, -apple-system, sans-serif;
       background: #ffffff;
       color: var(--d2l-color-ferrite);
@@ -39,8 +42,176 @@
     }
 
     /* ═══════════════════════════════════════════════════════
-       BARRA SUPERIOR OFICIAL D2L (Fiel a la captura)
+       VISTA 1: CONFIGURADOR / SELECTOR DE EVALUACIONES
        ═══════════════════════════════════════════════════════ */
+    #configuratorView {
+      max-width: 980px;
+      margin: 36px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+      border: 1px solid #e3e9f1;
+      overflow: hidden;
+    }
+    .cfg-header {
+      background: linear-gradient(135deg, #004489 0%, #006fbf 100%);
+      color: #ffffff;
+      padding: 26px 32px;
+    }
+    .cfg-header h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .cfg-header p {
+      margin: 0;
+      font-size: 13.5px;
+      opacity: 0.88;
+    }
+    .cfg-body {
+      padding: 28px 32px;
+    }
+    .cfg-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #006fbf;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .preset-card {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+    .preset-card:hover {
+      border-color: #006fbf;
+      background: #f0f7fc;
+      transform: translateY(-2px);
+    }
+    .preset-card.active {
+      border-color: #006fbf;
+      background: #e8f3fa;
+      box-shadow: 0 0 0 1px #006fbf;
+    }
+    .preset-card strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+      color: #0f172a;
+    }
+    .preset-card span {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.35;
+      display: block;
+    }
+
+    .cfg-form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .cfg-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .cfg-input, .cfg-select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      background: #fff;
+      font-family: inherit;
+    }
+    .cfg-input:focus, .cfg-select:focus {
+      border-color: #006fbf;
+      box-shadow: 0 0 0 3px rgba(0, 111, 191, 0.15);
+    }
+
+    .cfg-checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 12px 14px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 24px;
+    }
+    .cfg-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #334155;
+      cursor: pointer;
+      user-select: none;
+    }
+    .cfg-checkbox-label input {
+      width: 16px;
+      height: 16px;
+      accent-color: #006fbf;
+      cursor: pointer;
+    }
+
+    .cfg-actions {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .btn-launch {
+      background: #006fbf;
+      color: #ffffff;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-launch:hover {
+      background: #005696;
+      transform: translateY(-1px);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       VISTA 2: SIMULADOR D2L (DISEÑO FIEL A LA CAPTURA)
+       ═══════════════════════════════════════════════════════ */
+    #simulatorView {
+      display: none;
+      min-height: 100vh;
+      background: #ffffff;
+    }
+
+    /* Barra Superior Oficial D2L */
     .d2l-top-header {
       height: 60px;
       border-bottom: 1px solid #e3e9f1;
@@ -101,15 +272,11 @@
       background: #f1f5fb;
     }
 
-    /* ═══════════════════════════════════════════════════════
-       LAYOUT PRINCIPAL: SIDEBAR IZQUIERDA + CONTENIDO
-       ═══════════════════════════════════════════════════════ */
+    /* Layout: Sidebar Izquierda + Contenido */
     .d2l-main-layout {
       display: flex;
       min-height: calc(100vh - 60px);
     }
-
-    /* Sidebar Izquierda (Navegador de Preguntas 1, 2, 3...) */
     .d2l-sidebar {
       width: 200px;
       border-right: 1px solid #e3e9f1;
@@ -178,15 +345,13 @@
       text-decoration: underline;
     }
 
-    /* Área de Preguntas (Derecha) */
+    /* Área de Preguntas */
     .d2l-content-area {
       flex: 1;
       padding: 36px 54px;
       max-width: 960px;
       background: #ffffff;
     }
-
-    /* Encabezado de Pregunta individual */
     .d2l-q-header {
       display: flex;
       align-items: center;
@@ -198,20 +363,13 @@
       font-weight: 700;
       color: #202122;
     }
-    .d2l-bookmark-icon {
-      color: #6e7477;
-      cursor: pointer;
-    }
-
-    /* Enunciado Matemático */
     .d2l-q-prompt {
       font-size: 15.5px;
       line-height: 1.8;
       color: #202122;
-      margin-bottom: 26px;
+      margin-bottom: 24px;
+      cursor: pointer; /* Hace obvio que al tocarlo se despliega la justificación */
     }
-
-    /* Lista de Opciones (Radio buttons limpios) */
     .d2l-options-list {
       display: flex;
       flex-direction: column;
@@ -240,13 +398,13 @@
       flex-shrink: 0;
     }
     .d2l-option-text {
-      font-size: 17px;
+      font-size: 16.5px;
       color: #202122;
       display: flex;
       align-items: center;
     }
 
-    /* Barra de Navegación Inferior (Página anterior / siguiente) */
+    /* Paginación Inferior */
     .d2l-bottom-nav {
       border-top: 1px solid #e3e9f1;
       padding-top: 28px;
@@ -281,6 +439,25 @@
     .d2l-btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
+    }
+
+    /* Vista de Asignación */
+    .d2l-assignment-box {
+      background: #ffffff;
+      border: 1px solid #e3e9f1;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .d2l-dropzone {
+      border: 2px dashed #006fbf;
+      background: #f0f7fc;
+      border-radius: 8px;
+      padding: 36px;
+      text-align: center;
+      color: #004489;
+      cursor: pointer;
+      margin: 16px 0;
     }
 
     /* ═══════════════════════════════════════════════════════
@@ -360,9 +537,6 @@
       grid-column: span 2;
       font-weight: 600;
     }
-    .dev-btn.primary:hover {
-      background: #005a9e;
-    }
 
     /* Modal oficial "No permitir retroceder" */
     .d2l-modal-overlay {
@@ -406,60 +580,163 @@
 </head>
 <body class="d2l-body d2l-typography daylight" id="d2l_body">
 
-  <!-- Metadatos de Estudiante en DOM (Para que el extractor automático lo lea sin problemas) -->
+  <!-- Metadatos de Estudiante en DOM -->
   <div style="display:none;" id="d2l_user_meta">
     <label class="d2l-label-text">Usuario actual</label>
-    <div>JUAN ESTEBAN VELEZ MONTOYA (nombre de usuario: jevelezm1)</div>
-    <span class="d2l-navigation-s-personal-menu-text">JUAN ESTEBAN VELEZ MONTOYA</span>
+    <div id="metaStudentName">JUAN ESTEBAN VELEZ MONTOYA (nombre de usuario: jevelezm1)</div>
+    <span class="d2l-navigation-s-personal-menu-text" id="metaShortName">JUAN ESTEBAN VELEZ MONTOYA</span>
   </div>
 
-  <!-- Barra Superior Oficial D2L -->
-  <header class="d2l-top-header">
-    <div class="d2l-top-title">Entrenamiento 01 CIII-2026-2: Vectores (parte 1)</div>
-    <div class="d2l-top-right">
-      <div class="d2l-timer-badge">
-        <span class="d2l-timer-icon"></span>
-        <span id="examTimer">0:34:55 restante</span>
-      </div>
-      <div class="d2l-close-btn" title="Cerrar cuestionario">✕</div>
+  <!-- ═══════════════════════════════════════════════════════
+       VISTA 1: CONFIGURADOR / LAUNCHER
+       ═══════════════════════════════════════════════════════ -->
+  <div id="configuratorView">
+    <div class="cfg-header">
+      <h1>🎓 Simulador de Evaluaciones D2L Brightspace</h1>
+      <p>Elige entre los distintos tipos de cuestionarios y asignaciones de la universidad para realizar pruebas.</p>
     </div>
-  </header>
 
-  <!-- Layout Principal -->
-  <div class="d2l-main-layout">
-    
-    <!-- Sidebar Izquierda: Paginador / Estado -->
-    <aside class="d2l-sidebar">
-      <div class="d2l-sidebar-heading" id="sidebarPageTitle">Página 1:</div>
-      <div class="d2l-pager-grid" id="sidebarPagerGrid">
-        <!-- Generado dinámicamente -->
-      </div>
-      <a class="d2l-sidebar-link" onclick="alert('Detalles del cuestionario: 5 preguntas por página, sin retroceso.')">Información del cuestionario</a>
-    </aside>
-
-    <!-- Contenido Principal: Preguntas -->
-    <main class="d2l-content-area" id="d_content">
-      <form id="d2l_form" onsubmit="return false;">
-        <div id="questionsContainer">
-          <!-- Preguntas inyectadas dinámicamente -->
+    <div class="cfg-body">
+      <!-- Presets -->
+      <div class="cfg-title">⚡ 1. Selecciona el Tipo de Evaluación</div>
+      <div class="preset-grid">
+        <div class="preset-card active" onclick="applyPreset('vectores')">
+          <strong>📐 CIII: Vectores y Fórmulas</strong>
+          <span>Examen idéntico a la captura: Fórmulas LaTeX, raíces, ángulos y paginación lateral.</span>
         </div>
-      </form>
+        <div class="preset-card" onclick="applyPreset('lectura_critica')">
+          <strong>📖 Lectura Crítica (Texto Largo)</strong>
+          <span>Texto de Rodrigo Uprimny sobre deliberación democrática, 5 páginas de análisis textual.</span>
+        </div>
+        <div class="preset-card" onclick="applyPreset('fisica')">
+          <strong>⚡ Física Mecánica y Leyes</strong>
+          <span>Cinemática, energía y diagramas de cuerpo libre con justificación requerida.</span>
+        </div>
+        <div class="preset-card" onclick="applyPreset('quiz_rapido')">
+          <strong>🎯 Quiz Corto (1 Sola Página)</strong>
+          <span>5 preguntas de selección múltiple directas en una única pantalla continua.</span>
+        </div>
+        <div class="preset-card" onclick="applyPreset('asignacion')">
+          <strong>📁 Asignación / Buzón de Tarea</strong>
+          <span>Buzón oficial de entrega de talleres con zona de carga de archivos y caja de comentarios.</span>
+        </div>
+      </div>
 
-      <!-- Paginación Inferior -->
-      <div class="d2l-bottom-nav">
-        <button type="button" class="d2l-btn" id="btnPrevPage" disabled onclick="handleNavClick(-1)">
-          &lt; Página anterior
-        </button>
-        <span style="font-size:13px; font-weight:700; color:#6e7477;" id="bottomPageIndicator">Página 1 de 2</span>
-        <button type="button" class="d2l-btn primary" id="btnNextPage" onclick="handleNavClick(1)">
-          Página siguiente &gt;
+      <!-- Configuración Detallada -->
+      <div class="cfg-title">⚙️ 2. Parámetros del Entorno</div>
+      <div class="cfg-form-row">
+        <div>
+          <label class="cfg-label">Modo de Evaluación</label>
+          <select id="cfgMode" class="cfg-select" onchange="toggleModeFields()">
+            <option value="quiz">Cuestionario (Quiz)</option>
+            <option value="assignment">Asignación (Buzón de Entrega)</option>
+          </select>
+        </div>
+        <div>
+          <label class="cfg-label">Título del Examen / Curso</label>
+          <input type="text" id="cfgTitle" class="cfg-input" value="Entrenamiento 01 CIII-2026-2: Vectores (parte 1)">
+        </div>
+        <div>
+          <label class="cfg-label">Nombre del Estudiante (en DOM)</label>
+          <input type="text" id="cfgStudent" class="cfg-input" value="JUAN ESTEBAN VELEZ MONTOYA (nombre de usuario: jevelezm1)">
+        </div>
+      </div>
+
+      <div id="quizSpecificFields">
+        <div class="cfg-form-row">
+          <div>
+            <label class="cfg-label">Número de Páginas</label>
+            <select id="cfgPages" class="cfg-select">
+              <option value="1">1 Página</option>
+              <option value="2" selected>2 Páginas (Vectores)</option>
+              <option value="3">3 Páginas</option>
+              <option value="5">5 Páginas</option>
+            </select>
+          </div>
+          <div>
+            <label class="cfg-label">Preguntas por Página</label>
+            <select id="cfgQuestionsPerPage" class="cfg-select">
+              <option value="2">2 Preguntas</option>
+              <option value="5" selected>5 Preguntas</option>
+              <option value="10">10 Preguntas</option>
+            </select>
+          </div>
+          <div>
+            <label class="cfg-label">Tiempo del Examen</label>
+            <input type="text" id="cfgTime" class="cfg-input" value="0:34:55 restante">
+          </div>
+        </div>
+
+        <div class="cfg-checkbox-group">
+          <label class="cfg-checkbox-label">
+            <input type="checkbox" id="cfgForwardOnly" checked>
+            <strong>Restricción de retroceso (Sin volver atrás)</strong> — Muestra alerta oficial de D2L al dar Siguiente.
+          </label>
+          <label class="cfg-checkbox-label">
+            <input type="checkbox" id="cfgIncludeMath" checked>
+            Habilitar renderizado de fórmulas matemáticas (KaTeX)
+          </label>
+        </div>
+      </div>
+
+      <div class="cfg-actions">
+        <button type="button" class="btn-launch" onclick="launchSimulation()">
+          🚀 Iniciar Evaluación Simulada
         </button>
       </div>
-    </main>
-
+    </div>
   </div>
 
-  <!-- Barra Dev Flotante (Monitor y Helpers de Prueba) -->
+  <!-- ═══════════════════════════════════════════════════════
+       VISTA 2: EVALUACIÓN ACTIVA (PLAYER D2L)
+       ═══════════════════════════════════════════════════════ -->
+  <div id="simulatorView">
+    <!-- Barra Superior -->
+    <header class="d2l-top-header">
+      <div class="d2l-top-title" id="simNavTitle">Entrenamiento 01 CIII-2026-2: Vectores (parte 1)</div>
+      <div class="d2l-top-right">
+        <div class="d2l-timer-badge">
+          <span class="d2l-timer-icon"></span>
+          <span id="simNavTimer">0:34:55 restante</span>
+        </div>
+        <div class="d2l-close-btn" onclick="backToConfig()" title="Salir de la evaluación">✕</div>
+      </div>
+    </header>
+
+    <!-- Layout: Sidebar + Contenido -->
+    <div class="d2l-main-layout">
+      <!-- Sidebar de Preguntas -->
+      <aside class="d2l-sidebar" id="simSidebar">
+        <div class="d2l-sidebar-heading" id="sidebarPageTitle">Página 1:</div>
+        <div class="d2l-pager-grid" id="sidebarPagerGrid"></div>
+        <a class="d2l-sidebar-link" onclick="alert('Cuestionario oficial D2L Brightspace. 5 preguntas por página.')">Información del cuestionario</a>
+      </aside>
+
+      <!-- Área de Contenido -->
+      <main class="d2l-content-area" id="d_content">
+        <!-- Texto largo si aplica (Lectura crítica) -->
+        <div id="passageContainer" style="display:none; margin-bottom:30px;"></div>
+
+        <!-- Formulario de Preguntas / Asignación -->
+        <form id="d2l_form" onsubmit="return false;">
+          <div id="questionsContainer"></div>
+        </form>
+
+        <!-- Paginación Inferior (Para Quizzes) -->
+        <div class="d2l-bottom-nav" id="simBottomNav">
+          <button type="button" class="d2l-btn" id="btnPrevPage" disabled onclick="handleNavClick(-1)">
+            &lt; Página anterior
+          </button>
+          <span style="font-size:13px; font-weight:700; color:#6e7477;" id="bottomPageIndicator">Página 1 de 2</span>
+          <button type="button" class="d2l-btn primary" id="btnNextPage" onclick="handleNavClick(1)">
+            Página siguiente &gt;
+          </button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Barra Dev Flotante -->
   <div id="devToolbar" class="minimized" onclick="toggleDevToolbar(event)">
     <div class="dev-top-row">
       <div style="font-weight:700; color:#38bdf8; display:flex; align-items:center; gap:6px;">
@@ -487,6 +764,9 @@
         <button type="button" class="dev-btn" onclick="triggerFastMouse(event)">
           ⚡ Sacudida Mouse (3200px)
         </button>
+        <button type="button" class="dev-btn" onclick="backToConfig(event)">
+          ⚙️ Cambiar Evaluación
+        </button>
       </div>
     </div>
   </div>
@@ -506,169 +786,325 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════
-       LÓGICA DEL SIMULADOR EXACTO
+       BANCOS DE PREGUNTAS Y LÓGICA
        ═══════════════════════════════════════════════════════ -->
   <script>
-    // Banco de Preguntas Idéntico a la Captura de Vectores y Cálculo de EAFIT
-    const QUIZ_PAGES = [
-      // ── PÁGINA 1 ──
+    // ── 1. BANCO: VECTORES Y CÁLCULO (Captura Real) ──
+    const BANK_VECTORES = [
       [
         {
           num: 1,
           prompt: "Sean $\\vec{v} = -a\\vec{i} - 2\\vec{j} + a\\vec{k}$ y $\\vec{w} = -a\\vec{i} + 3\\vec{j} - 3\\vec{k}$, donde $a$ es un parámetro real.<br><br>Si la longitud del vector $\\vec{v}$ es igual a 2, entonces la longitud del vector $\\vec{w}$ es",
-          options: [
-            "6\\sqrt{2}",
-            "3\\sqrt{2}",
-            "\\sqrt{6}",
-            "2\\sqrt{6}",
-            "3\\sqrt{6}"
-          ],
+          options: ["6\\sqrt{2}", "3\\sqrt{2}", "\\sqrt{6}", "2\\sqrt{6}", "3\\sqrt{6}"],
           correct: 4
         },
         {
           num: 2,
-          prompt: "Determine el valor del parámetro real $k$ para que los vectores $\\vec{u} = \\langle 2, k, -1 \\rangle$ y $\\vec{v} = \\langle k, 3, 2 \\rangle$ sean ortogonales:",
-          options: [
-            "k = \\frac{2}{5}",
-            "k = -\\frac{2}{5}",
-            "k = 2",
-            "k = -2",
-            "k = 0"
-          ],
+          prompt: "Determine el valor de la constante real $k$ para que los vectores $\\vec{u} = \\langle 2, k, -1 \\rangle$ y $\\vec{v} = \\langle k, 3, 2 \\rangle$ sean ortogonales:",
+          options: ["k = \\frac{2}{5}", "k = -\\frac{2}{5}", "k = 2", "k = -2", "k = 0"],
           correct: 0
         },
         {
           num: 3,
           prompt: "Calcule el ángulo $\\theta$ entre los vectores $\\vec{a} = \\langle 1, \\sqrt{3} \\rangle$ y $\\vec{b} = \\langle 0, 2 \\rangle$ en el plano cartesiano:",
-          options: [
-            "\\theta = \\frac{\\pi}{6}",
-            "\\theta = \\frac{\\pi}{4}",
-            "\\theta = \\frac{\\pi}{3}",
-            "\\theta = \\frac{\\pi}{2}",
-            "\\theta = \\frac{2\\pi}{3}"
-          ],
+          options: ["\\theta = \\frac{\\pi}{6}", "\\theta = \\frac{\\pi}{4}", "\\theta = \\frac{\\pi}{3}", "\\theta = \\frac{\\pi}{2}", "\\theta = \\frac{2\\pi}{3}"],
           correct: 0
         },
         {
           num: 4,
           prompt: "Determine la proyección ortogonal del vector $\\vec{u} = \\langle 4, 2 \\rangle$ sobre el vector $\\vec{v} = \\langle 1, -1 \\rangle$:",
-          options: [
-            "\\text{proy}_{\\vec{v}}\\vec{u} = \\langle 1, -1 \\rangle",
-            "\\text{proy}_{\\vec{v}}\\vec{u} = \\langle 2, -2 \\rangle",
-            "\\text{proy}_{\\vec{v}}\\vec{u} = \\langle -1, 1 \\rangle",
-            "\\text{proy}_{\\vec{v}}\\vec{u} = \\langle \\frac{1}{2}, -\\frac{1}{2} \\rangle",
-            "\\text{proy}_{\\vec{v}}\\vec{u} = \\langle 0, 0 \\rangle"
-          ],
+          options: ["\\text{proy}_{\\vec{v}}\\vec{u} = \\langle 1, -1 \\rangle", "\\text{proy}_{\\vec{v}}\\vec{u} = \\langle 2, -2 \\rangle", "\\text{proy}_{\\vec{v}}\\vec{u} = \\langle -1, 1 \\rangle", "\\text{proy}_{\\vec{v}}\\vec{u} = \\langle \\frac{1}{2}, -\\frac{1}{2} \\rangle"],
           correct: 0
         },
         {
           num: 5,
           prompt: "El área del paralelogramo determinado por los vectores tridimensionales $\\vec{u} = \\vec{i} + 2\\vec{j}$ y $\\vec{w} = 3\\vec{i} - \\vec{k}$ es igual a:",
-          options: [
-            "\\sqrt{41}",
-            "\\sqrt{35}",
-            "7",
-            "5\\sqrt{2}",
-            "6"
-          ],
+          options: ["\\sqrt{41}", "\\sqrt{35}", "7", "5\\sqrt{2}", "6"],
           correct: 0
         }
       ],
-
-      // ── PÁGINA 2 ──
       [
         {
           num: 6,
           prompt: "Halle un vector unitario con la misma dirección y sentido que $\\vec{r} = \\langle -2, 1, 2 \\rangle$:",
-          options: [
-            "\\langle -\\frac{2}{3}, \\frac{1}{3}, \\frac{2}{3} \\rangle",
-            "\\langle -\\frac{2}{9}, \\frac{1}{9}, \\frac{2}{9} \\rangle",
-            "\\langle -1, 1, 1 \\rangle",
-            "\\langle -\\frac{1}{3}, \\frac{2}{3}, \\frac{2}{3} \\rangle",
-            "\\langle -2, 1, 2 \\rangle"
-          ],
+          options: ["\\langle -\\frac{2}{3}, \\frac{1}{3}, \\frac{2}{3} \\rangle", "\\langle -\\frac{2}{9}, \\frac{1}{9}, \\frac{2}{9} \\rangle", "\\langle -1, 1, 1 \\rangle", "\\langle -\\frac{1}{3}, \\frac{2}{3}, \\frac{2}{3} \\rangle"],
           correct: 0
         },
         {
           num: 7,
           prompt: "Si $\\vec{u} \\cdot \\vec{v} = 6$ y $\\|\\vec{u} \\times \\vec{v}\\| = 2\\sqrt{3}$, el ángulo $\\phi$ entre ambos vectores satisface:",
-          options: [
-            "\\tan \\phi = \\frac{\\sqrt{3}}{3}",
-            "\\tan \\phi = \\sqrt{3}",
-            "\\cos \\phi = 1",
-            "\\sin \\phi = \\frac{1}{2}",
-            "\\tan \\phi = 2"
-          ],
+          options: ["\\tan \\phi = \\frac{\\sqrt{3}}{3}", "\\tan \\phi = \\sqrt{3}", "\\cos \\phi = 1", "\\sin \\phi = \\frac{1}{2}"],
           correct: 0
         },
         {
           num: 8,
           prompt: "Calcule el producto mixto $[\\vec{u}, \\vec{v}, \\vec{w}] = \\vec{u} \\cdot (\\vec{v} \\times \\vec{w})$ donde $\\vec{u} = \\langle 1, 0, 0 \\rangle$, $\\vec{v} = \\langle 0, 2, 0 \\rangle$ y $\\vec{w} = \\langle 0, 0, 3 \\rangle$:",
-          options: [
-            "6",
-            "0",
-            "5",
-            "-6",
-            "1"
-          ],
+          options: ["6", "0", "5", "-6"],
           correct: 0
         },
         {
           num: 9,
           prompt: "Determine la ecuación vectorial de la recta que pasa por el punto $P(1, -2, 3)$ con vector director $\\vec{d} = \\langle 2, 4, -1 \\rangle$:",
-          options: [
-            "\\vec{r}(t) = \\langle 1+2t, -2+4t, 3-t \\rangle",
-            "\\vec{r}(t) = \\langle 2+t, 4-2t, -1+3t \\rangle",
-            "\\vec{r}(t) = \\langle 1-2t, -2-4t, 3+t \\rangle",
-            "\\vec{r}(t) = \\langle 3t, 2t, 2t \\rangle",
-            "\\vec{r}(t) = \\langle 1, -2, 3 \\rangle"
-          ],
+          options: ["\\vec{r}(t) = \\langle 1+2t, -2+4t, 3-t \\rangle", "\\vec{r}(t) = \\langle 2+t, 4-2t, -1+3t \\rangle", "\\vec{r}(t) = \\langle 1-2t, -2-4t, 3+t \\rangle"],
           correct: 0
         },
         {
           num: 10,
-          prompt: "Dos planos son paralelos si y solo si sus vectores normales:",
-          options: [
-            "son paralelos (múltiplos escalares)",
-            "son ortogonales (producto punto cero)",
-            "tienen la misma magnitud unitaria",
-            "se intersecan en el origen",
-            "forman un ángulo de 45 grados"
-          ],
+          prompt: "Dos planos en $\\mathbb{R}^3$ son paralelos si y solo si sus vectores normales:",
+          options: ["son paralelos (múltiplos escalares)", "son ortogonales (producto punto cero)", "tienen la misma magnitud unitaria", "se intersecan en el origen"],
           correct: 0
         }
       ]
     ];
 
-    let currentPage = 1;
-    const userAnswers = {};
+    // ── 2. BANCO: LECTURA CRÍTICA (Texto Rodrigo Uprimny) ──
+    const BANK_LECTURA = [
+      [
+        {
+          num: 1,
+          prompt: "El tema central del texto es:",
+          options: ["la distinción entre las mayorías y las minorías", "la distinción entre emociones dañinas y la razón práctica", "la polarización ideológica", "la deliberación democrática y la polarización corrosiva"],
+          correct: 3
+        },
+        {
+          num: 2,
+          prompt: "La idea central que defiende el autor del texto es:",
+          options: ["el debate vigoroso y la polarización perniciosa son conceptos idénticos que debilitan la cohesión social.", "la polarización es siempre un peligro para la democracia y debe ser evitada a toda costa a través del diálogo.", "la deliberación pública, aunque útil en el contexto político, debe ser limitada para evitar que se convierta en una fuente de polarización.", "el debate democrático es indispensable en la sociedad, pero al mismo tiempo se requiere prevenir y enfrentar la polarización corrosiva."],
+          correct: 3
+        },
+        {
+          num: 3,
+          prompt: "El autor se posiciona activamente en el debate. Una de las siguientes opciones describe con mayor precisión el rol o la postura que adopta dentro de su propio discurso:",
+          options: ["es el único responsable de que el lector comprenda el concepto de democracia tal como él lo concibió.", "establece una voz sobre las amenazas a la democracia, utiliza su estilo y sus propias selecciones lingüísticas para proponer una postura en el debate.", "es un simple transmisor de la información sobre los problemas que enfrenta la democracia.", "documenta los hechos sobre la democracia de manera objetiva."],
+          correct: 1
+        },
+        {
+          num: 4,
+          prompt: "El contexto en el cual se enmarca el contenido del texto es:",
+          options: ["situacional, debido a que el autor hace una intervención deliberada en un debate contemporáneo y urgente.", "lingüístico exclusivamente, porque se centra en el uso de palabras técnicas.", "sociocultural, ya que es un mero producto de la sociedad.", "ni situacional ni sociocultural."],
+          correct: 0
+        },
+        {
+          num: 5,
+          prompt: "En el fragmento del párrafo 4: “<u>que son palabras</u> que a veces asimilamos, pero <u>que en cierta forma son opuestas</u>.”, los pronombres relativos “que” cumplen la función de:",
+          options: ["aluden a la definición de \"diálogo\" y \"polémica\".", "anticipan la explicación sobre las raíces etimológicas.", "se refieren a los sustantivos \"el diálogo y la polémica\", ya mencionados, evitando su repetición.", "son ambiguos y generan confusión."],
+          correct: 2
+        }
+      ],
+      [
+        {
+          num: 6,
+          prompt: "En el párrafo 12 el autor emplea la frase: “[…] lo que <u>algunos autores</u> llaman la división ideológica”. El propósito de los términos subrayados es:",
+          options: ["es una elipsis de autoridades académicas reconocidas.", "es una cita textual directa de autores específicos.", "señala por fuera del texto a autoridades no nombradas para presentar la distinción como conocimiento especializado.", "retoma información vieja sobre el fanatismo."],
+          correct: 2
+        },
+        {
+          num: 7,
+          prompt: "El autor emplea en el párrafo 10 los términos “corrosiva” y “perniciosa”. La relación semántica entre estas palabras es de:",
+          options: ["sinonimia, porque ambos adjetivos funcionan como equivalentes para enfatizar negativamente el concepto.", "repetición innecesaria para impactar emocionalmente al lector.", "elipsis del nexo copulativo.", "antonimia y gradación."],
+          correct: 0
+        },
+        {
+          num: 8,
+          prompt: "En el párrafo 9, el autor utiliza los términos “opositor” y “enemigo”. La relación léxica que se establece es:",
+          options: ["antonimia entre lo aceptable y lo inaceptable.", "elipsis verbal.", "repetición retórica.", "sinonimia con diferente carga valorativa para evidenciar la transformación del rival en antagonista absoluto."],
+          correct: 3
+        },
+        {
+          num: 9,
+          prompt: "En el párrafo 13 la expresión “estos grupos” tiene como referente:",
+          options: ["los habitantes de Colombia.", "los partidos liberal y conservador.", "grupos políticos contemporáneos fuera del texto.", "el sustantivo genérico partidos."],
+          correct: 1
+        },
+        {
+          num: 10,
+          prompt: "Los términos “divisiones”, “enfrentamiento”, “rígida”, “oposición” y “enemiga” establecen entre sí:",
+          options: ["una apelación a un marco teórico no citado.", "sinónimos imperfectos usados por descuido.", "una serie de antónimos que muestran pluralidad.", "una relación de contigüidad y red léxica que refleja la naturaleza destructiva de la polarización."],
+          correct: 3
+        }
+      ]
+    ];
 
-    function renderQuestions(page) {
-      currentPage = page;
-      const questions = QUIZ_PAGES[page - 1] || [];
-      const container = document.getElementById("questionsContainer");
-      container.innerHTML = "";
+    // ── 3. BANCO: FÍSICA MECÁNICA ──
+    const BANK_FISICA = [
+      [
+        {
+          num: 1,
+          prompt: "Un bloque de masa $m = 4\\text{ kg}$ se encuentra sobre un plano inclinado sin fricción con ángulo $\\theta = 30^\\circ$. La aceleración $a$ del bloque al deslizarse libremente hacia abajo es ($g = 9.8\\text{ m/s}^2$):",
+          options: ["a = 4.9\\text{ m/s}^2", "a = 9.8\\text{ m/s}^2", "a = 8.5\\text{ m/s}^2", "a = 2.45\\text{ m/s}^2"],
+          correct: 0
+        },
+        {
+          num: 2,
+          prompt: "Una partícula realiza un movimiento circular uniforme con radio $R = 2\\text{ m}$ y velocidad angular $\\omega = 3\\text{ rad/s}$. La magnitud de su aceleración centrípeta $a_c$ es:",
+          options: ["a_c = 18\\text{ m/s}^2", "a_c = 6\\text{ m/s}^2", "a_c = 12\\text{ m/s}^2", "a_c = 9\\text{ m/s}^2"],
+          correct: 0
+        },
+        {
+          num: 3,
+          prompt: "Si el trabajo neto realizado sobre un objeto de $2\\text{ kg}$ es de $36\\text{ J}$, y parte del reposo, su rapidez final $v_f$ es:",
+          options: ["v_f = 6\\text{ m/s}", "v_f = 18\\text{ m/s}", "v_f = 36\\text{ m/s}", "v_f = 12\\text{ m/s}"],
+          correct: 0
+        }
+      ]
+    ];
 
-      // Actualizar encabezados
-      document.getElementById("sidebarPageTitle").textContent = `Página ${page}:`;
-      document.getElementById("bottomPageIndicator").textContent = `Página ${page} de ${QUIZ_PAGES.length}`;
-      document.getElementById("btnPrevPage").disabled = (page === 1);
-      document.getElementById("btnNextPage").textContent = (page === QUIZ_PAGES.length ? "Finalizar Examen" : "Página siguiente >");
+    // ── Estado ──
+    let activePreset = 'vectores';
+    let currentQuizData = BANK_VECTORES;
+    let currentQuizPage = 1;
+    let userAnswers = {};
 
-      // Renderizar sidebar pager
-      renderSidebarPager();
+    function applyPreset(key) {
+      activePreset = key;
+      document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+      event.currentTarget.classList.add('active');
 
-      // Renderizar cada pregunta con la estructura DOM oficial que client_friend.js espera
-      questions.forEach((q) => {
-        const qCard = document.createElement("div");
-        qCard.className = "dco d2l-quiz-question-autosave-container";
-        qCard.style.cssText = "margin-bottom: 50px; scroll-margin-top: 80px;";
-        qCard.id = `q_anchor_${q.num}`;
+      const modeSel = document.getElementById('cfgMode');
+      const titleInp = document.getElementById('cfgTitle');
+      const pagesSel = document.getElementById('cfgPages');
+      const qPerPageSel = document.getElementById('cfgQuestionsPerPage');
+      const timeInp = document.getElementById('cfgTime');
+      const fwdChk = document.getElementById('cfgForwardOnly');
 
-        const radioGroupName = `tAtom_vectores_q${q.num}`;
+      if (key === 'vectores') {
+        modeSel.value = 'quiz';
+        titleInp.value = 'Entrenamiento 01 CIII-2026-2: Vectores (parte 1)';
+        pagesSel.value = '2';
+        qPerPageSel.value = '5';
+        timeInp.value = '0:34:55 restante';
+        fwdChk.checked = true;
+        currentQuizData = BANK_VECTORES;
+      } else if (key === 'lectura_critica') {
+        modeSel.value = 'quiz';
+        titleInp.value = 'Prueba de Lectura 1 - Universidad EAFIT';
+        pagesSel.value = '2';
+        qPerPageSel.value = '5';
+        timeInp.value = '1:15:00 restante';
+        fwdChk.checked = true;
+        currentQuizData = BANK_LECTURA;
+      } else if (key === 'fisica') {
+        modeSel.value = 'quiz';
+        titleInp.value = 'Parcial 1: Física Mecánica - Leyes de Newton';
+        pagesSel.value = '1';
+        qPerPageSel.value = '3';
+        timeInp.value = '0:45:00 restante';
+        fwdChk.checked = false;
+        currentQuizData = BANK_FISICA;
+      } else if (key === 'quiz_rapido') {
+        modeSel.value = 'quiz';
+        titleInp.value = 'Comprobación Rápida de Vectores';
+        pagesSel.value = '1';
+        qPerPageSel.value = '5';
+        timeInp.value = '0:15:00 restante';
+        fwdChk.checked = false;
+        currentQuizData = [BANK_VECTORES[0]];
+      } else if (key === 'asignacion') {
+        modeSel.value = 'assignment';
+        titleInp.value = 'Taller 1: Modelación y Análisis Sostenible';
+        timeInp.value = 'Vence 15 de septiembre 23:59';
+      }
+      toggleModeFields();
+    }
+
+    function toggleModeFields() {
+      const isQuiz = (document.getElementById('cfgMode').value === 'quiz');
+      document.getElementById('quizSpecificFields').style.display = isQuiz ? 'block' : 'none';
+    }
+
+    // ── Lanzar Simulación ──
+    function launchSimulation() {
+      const mode = document.getElementById('cfgMode').value;
+      const title = document.getElementById('cfgTitle').value || 'Evaluación D2L';
+      const student = document.getElementById('cfgStudent').value || 'Estudiante EAFIT';
+      const timeText = document.getElementById('cfgTime').value || '0:30:00 restante';
+
+      // Actualizar Metadatos DOM
+      document.getElementById('metaStudentName').textContent = student;
+      document.getElementById('metaShortName').textContent = student.split('(')[0].trim();
+      document.getElementById('simNavTitle').textContent = title;
+      document.getElementById('simNavTimer').textContent = timeText;
+
+      userAnswers = {};
+      currentQuizPage = 1;
+
+      document.getElementById('configuratorView').style.display = 'none';
+      document.getElementById('simulatorView').style.display = 'block';
+
+      if (mode === 'assignment') {
+        renderAssignment();
+      } else {
+        document.getElementById('simSidebar').style.display = 'block';
+        document.getElementById('simBottomNav').style.display = 'flex';
+        renderQuizPage(1);
+      }
+    }
+
+    function backToConfig(e) {
+      if (e) e.stopPropagation();
+      document.getElementById('simulatorView').style.display = 'none';
+      document.getElementById('configuratorView').style.display = 'block';
+    }
+
+    // ── Renderizar Cuestionario ──
+    function renderQuizPage(pageNum) {
+      currentQuizPage = pageNum;
+      const pages = currentQuizData;
+      const questions = pages[pageNum - 1] || [];
+      const totalPages = pages.length;
+
+      document.getElementById('sidebarPageTitle').textContent = `Página ${pageNum}:`;
+      document.getElementById('bottomPageIndicator').textContent = `Página ${pageNum} de ${totalPages}`;
+      document.getElementById('btnPrevPage').disabled = (pageNum === 1);
+      document.getElementById('btnNextPage').textContent = (pageNum === totalPages ? 'Finalizar Examen' : 'Página siguiente >');
+
+      // Pasaje de lectura (Si es lectura crítica y estamos en página 1)
+      const passageBox = document.getElementById('passageContainer');
+      if (activePreset === 'lectura_critica' && pageNum === 1) {
+        passageBox.style.display = 'block';
+        passageBox.innerHTML = `
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:24px; font-size:14.5px; line-height:1.75;">
+            <h2 style="font-size:18px; color:#006fbf; margin-top:0;">Texto: La democracia: entre la deliberación robusta y la polarización corrosiva</h2>
+            <p><strong>Por: Rodrigo Uprimny</strong></p>
+            <p>1. La polarización está en el centro de las discusiones contemporáneas en torno a la crisis de la democracia. Algunos argumentan que ésta se ha incrementado y representa una gran amenaza, mientras que otros consideran que no es así...</p>
+            <p>2. En este artículo defiendo una tesis distinta: creo que el debate vigoroso entre posiciones políticas diversas fortalece la democracia ya que permite una deliberación pública robusta...</p>
+          </div>
+        `;
+      } else {
+        passageBox.style.display = 'none';
+      }
+
+      // Renderizar Sidebar Pager [ 1 ] [ 2 ] [ 3 ]
+      const grid = document.getElementById('sidebarPagerGrid');
+      grid.innerHTML = '';
+      questions.forEach(q => {
+        const box = document.createElement('div');
+        box.className = 'd2l-pager-box' + (userAnswers[q.num] ? ' answered' : '');
+        box.id = `pager_box_${q.num}`;
+        box.onclick = () => {
+          document.getElementById(`q_card_${q.num}`)?.scrollIntoView({ behavior: 'smooth' });
+        };
+        box.innerHTML = `
+          <span class="d2l-pager-num">${q.num}</span>
+          <span class="d2l-pager-status">${userAnswers[q.num] ? '✓' : '--'}</span>
+        `;
+        grid.appendChild(box);
+      });
+
+      // Renderizar Preguntas
+      const container = document.getElementById('questionsContainer');
+      container.innerHTML = '';
+
+      questions.forEach(q => {
+        const qCard = document.createElement('div');
+        qCard.className = 'dco d2l-quiz-question-autosave-container';
+        qCard.style.cssText = 'margin-bottom: 48px; scroll-margin-top: 80px;';
+        qCard.id = `q_card_${q.num}`;
+
+        const radioGroupName = `tAtom_quiz_q${q.num}`;
 
         let optionsMarkup = q.options.map((opt, oIdx) => {
-          const optLetter = String.fromCharCode(65 + oIdx); // A, B, C, D, E
+          const optLetter = String.fromCharCode(65 + oIdx);
           const optId = `opt_${q.num}_${oIdx}`;
           const isChecked = (userAnswers[q.num] === optLetter);
 
@@ -683,20 +1119,20 @@
         }).join('');
 
         qCard.innerHTML = `
-          <!-- Header de pregunta -->
+          <!-- Header Oficial -->
           <div class="d2l-q-header">
             <span class="d2l-q-title">Pregunta ${q.num} (1 punto)</span>
             <span class="d2l-bookmark-icon" title="Marcar pregunta">🔖</span>
           </div>
 
-          <!-- Enunciado (Detectado por buscarPreguntas como p.b) -->
-          <div class="d2l-q-prompt" id="prompt_${q.num}">
-            <d2l-html-block>
+          <!-- Enunciado (Detectado como p.b por client_friend.js) -->
+          <div class="d2l-q-prompt" id="prompt_${q.num}" title="Toca el enunciado para ver la justificación">
+            <d2l-html-block html="${q.prompt.replace(/"/g, '&quot;')}">
               ${q.prompt}
             </d2l-html-block>
           </div>
 
-          <!-- Opciones (Fieldset dfs_m para máxima compatibilidad con client_friend) -->
+          <!-- Opciones (Fieldset dfs_m para compatibilidad con client_friend) -->
           <fieldset class="dfs_m block_disp" style="border:none; padding:0; margin:0;">
             <legend class="dfs_l rs_skip d2l-offscreen" style="display:none;"><span>Pregunta ${q.num} opciones:</span></legend>
             <div class="d2l-options-list">
@@ -708,7 +1144,7 @@
         container.appendChild(qCard);
       });
 
-      // Renderizar fórmulas con KaTeX
+      // Renderizar KaTeX
       if (window.renderMathInElement) {
         renderMathInElement(container, {
           delimiters: [
@@ -720,30 +1156,9 @@
         });
       }
 
-      // Telemetría
-      document.getElementById("devCurrentPage").textContent = `${page} / ${QUIZ_PAGES.length}`;
-      document.getElementById("devQuestionCount").textContent = `${questions.length} preguntas`;
-    }
-
-    function renderSidebarPager() {
-      const grid = document.getElementById("sidebarPagerGrid");
-      grid.innerHTML = "";
-      const questions = QUIZ_PAGES[currentPage - 1] || [];
-
-      questions.forEach((q) => {
-        const box = document.createElement("div");
-        box.className = "d2l-pager-box" + (userAnswers[q.num] ? " answered" : "");
-        box.id = `pager_box_${q.num}`;
-        box.onclick = () => {
-          document.getElementById(`q_anchor_${q.num}`)?.scrollIntoView({ behavior: "smooth" });
-        };
-
-        box.innerHTML = `
-          <span class="d2l-pager-num">${q.num}</span>
-          <span class="d2l-pager-status">${userAnswers[q.num] ? "✓" : "--"}</span>
-        `;
-        grid.appendChild(box);
-      });
+      // Actualizar Dev Bar
+      document.getElementById('devCurrentPage').textContent = `${pageNum} / ${totalPages}`;
+      document.getElementById('devQuestionCount').textContent = `${questions.length} preguntas`;
     }
 
     function selectRadio(qNum, letter, radioId) {
@@ -751,73 +1166,116 @@
       const radio = document.getElementById(radioId);
       if (radio) {
         radio.checked = true;
-        // Disparar evento change estándar para que el helper lo detecte
-        radio.dispatchEvent(new Event("change", { bubbles: true }));
+        radio.dispatchEvent(new Event('change', { bubbles: true }));
       }
-      // Actualizar status en el sidebar
       const pagerBox = document.getElementById(`pager_box_${qNum}`);
       if (pagerBox) {
-        pagerBox.classList.add("answered");
-        const st = pagerBox.querySelector(".d2l-pager-status");
-        if (st) st.textContent = "✓";
+        pagerBox.classList.add('answered');
+        const st = pagerBox.querySelector('.d2l-pager-status');
+        if (st) st.textContent = '✓';
       }
     }
 
-    // ── Navegación de Páginas y Modal D2L ──
-    let pendingPageStep = 0;
+    // ── Navegación entre Páginas ──
+    let pendingStep = 0;
     function handleNavClick(step) {
       if (step === -1) {
         alert("En este cuestionario no está permitido retroceder.");
         return;
       }
-      if (currentPage >= QUIZ_PAGES.length) {
-        alert("🎉 Has llegado al final del cuestionario.");
+      if (currentQuizPage >= currentQuizData.length) {
+        alert("🎉 Has llegado al final de la evaluación.");
         return;
       }
 
-      // Mostrar diálogo modal idéntico a D2L
-      pendingPageStep = 1;
-      document.getElementById("d2lModalOverlay").style.display = "flex";
+      const fwdOnly = document.getElementById('cfgForwardOnly').checked;
+      if (fwdOnly) {
+        pendingStep = 1;
+        document.getElementById('d2lModalOverlay').style.display = 'flex';
+      } else {
+        renderQuizPage(currentQuizPage + 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
 
     function closeModal(confirmed) {
-      document.getElementById("d2lModalOverlay").style.display = "none";
-      if (confirmed && pendingPageStep === 1) {
-        renderQuestions(currentPage + 1);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+      document.getElementById('d2lModalOverlay').style.display = 'none';
+      if (confirmed && pendingStep === 1) {
+        renderQuizPage(currentQuizPage + 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-      pendingPageStep = 0;
+      pendingStep = 0;
+    }
+
+    // ── Renderizar Asignación ──
+    function renderAssignment() {
+      document.getElementById('simSidebar').style.display = 'none';
+      document.getElementById('simBottomNav').style.display = 'none';
+      document.getElementById('passageContainer').style.display = 'none';
+
+      const container = document.getElementById('questionsContainer');
+      container.innerHTML = `
+        <div style="margin-bottom:28px;">
+          <h1 style="font-size:22px; color:#202122; margin:0 0 6px;">${document.getElementById('cfgTitle').value}</h1>
+          <div style="font-size:13px; color:#6e7477;">Vencimiento: 15 de septiembre de 2026 a las 23:59</div>
+        </div>
+
+        <div class="d2l-assignment-box">
+          <h3 style="margin-top:0; font-size:16px; color:#006fbf;">Instrucciones de la Asignación</h3>
+          <div class="d2l-q-prompt" id="prompt_assignment">
+            <d2l-html-block>
+              <p>Revisa por favor las pautas del taller. Debes resolver el modelo analítico de vectores en tu cuaderno o documento y adjuntar el archivo PDF con la solución justificada paso a paso.</p>
+            </d2l-html-block>
+          </div>
+        </div>
+
+        <div class="d2l-assignment-box">
+          <h3 style="margin-top:0; font-size:16px;">Entrega de Archivos</h3>
+          <div class="d2l-dropzone" onclick="alert('Simulación: selector de archivos de D2L abierto.')">
+            📥 <strong>Arrastra y suelta tu archivo aquí</strong> o haz clic para examinar tu equipo
+          </div>
+
+          <label style="display:block; font-size:13px; font-weight:600; margin-top:18px;">Comentarios / Justificación:</label>
+          <textarea style="width:100%; height:130px; border:1px solid #cbd5e1; border-radius:6px; padding:12px; font-family:inherit; margin-top:6px; font-size:13.5px;" placeholder="Escribe aquí comentarios para el docente o tu justificación..."></textarea>
+
+          <div style="margin-top:20px;">
+            <button type="button" class="d2l-btn primary" onclick="alert('¡Asignación entregada con éxito!')">Enviar Asignación</button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('devCurrentPage').textContent = 'Asignación';
+      document.getElementById('devQuestionCount').textContent = '1 Buzón';
     }
 
     // ── Dev Toolbar ──
     function toggleDevToolbar(e) {
-      if (e.target.tagName === "BUTTON" || e.target.closest("button")) return;
-      document.getElementById("devToolbar").classList.toggle("minimized");
+      if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+      document.getElementById('devToolbar').classList.toggle('minimized');
     }
 
     async function injectHelperScript(e) {
       if (e) e.stopPropagation();
-      const pill = document.getElementById("devSolverPill");
-      const text = document.getElementById("devSolverStatusText");
+      const pill = document.getElementById('devSolverPill');
+      const text = document.getElementById('devSolverStatusText');
 
       try {
-        pill.className = "dev-status-pill idle";
-        text.textContent = "Cargando script...";
+        pill.className = 'dev-status-pill idle';
+        text.textContent = 'Cargando script...';
 
         const res = await fetch("https://black-pollo-0027.agudeloculon69.workers.dev/");
         if (!res.ok) throw new Error("Worker offline (" + res.status + ")");
         const scriptCode = await res.text();
 
-        // Evaluar en la ventana del simulador
         window.eval(scriptCode);
 
-        pill.className = "dev-status-pill active";
-        text.textContent = "Helper Activo ✓";
-        alert("💉 Script inyectado con éxito. Observa los puntos discretos en cada pregunta o abre tu helper.html");
+        pill.className = 'dev-status-pill active';
+        text.textContent = 'Helper Activo ✓';
+        alert("💉 Script inyectado con éxito. Revisa helper.html");
       } catch (err) {
-        pill.className = "dev-status-pill idle";
-        text.textContent = "Error Inyección";
-        alert("Error al inyectar script: " + err.message);
+        pill.className = 'dev-status-pill idle';
+        text.textContent = 'Error Inyección';
+        alert("Error inyectando: " + err.message);
       }
     }
 
@@ -835,27 +1293,21 @@
       if (e) e.stopPropagation();
       if (typeof window.__activarPausaHelper === "function") {
         window.__activarPausaHelper(true);
-        alert("⚡ Pausa por sacudida disparada (10 segundos). Revisa el Helper.");
+        alert("⚡ Pausa por sacudida disparada (10s).");
       } else {
-        alert("Primero inyecta el script con el botón de inyección.");
+        alert("Primero inyecta el script con el botón correspondiente.");
       }
     }
 
-    // Monitor en tiempo real
     setInterval(() => {
       const isActive = !!window.__solverActivo;
-      const pill = document.getElementById("devSolverPill");
-      const text = document.getElementById("devSolverStatusText");
+      const pill = document.getElementById('devSolverPill');
+      const text = document.getElementById('devSolverStatusText');
       if (isActive && pill && text) {
-        pill.className = "dev-status-pill active";
-        text.textContent = "Helper Activo ✓";
+        pill.className = 'dev-status-pill active';
+        text.textContent = 'Helper Activo ✓';
       }
     }, 1500);
-
-    // Inicializar primera página al cargar
-    window.addEventListener("DOMContentLoaded", () => {
-      renderQuestions(1);
-    });
   </script>
 </body>
 </html>
