@@ -648,9 +648,11 @@
             <label class="cfg-label">Número de Páginas</label>
             <select id="cfgPages" class="cfg-select">
               <option value="1">1 Página</option>
-              <option value="2" selected>2 Páginas (Vectores)</option>
+              <option value="2" selected>2 Páginas</option>
               <option value="3">3 Páginas</option>
+              <option value="4">4 Páginas</option>
               <option value="5">5 Páginas</option>
+              <option value="10">10 Páginas</option>
             </select>
           </div>
           <div>
@@ -757,6 +759,9 @@
       <div class="dev-btn-group">
         <button type="button" class="dev-btn primary" onclick="injectHelperScript(event)">
           💉 Inyectar Script Helper (Consola)
+        </button>
+        <button type="button" class="dev-btn" onclick="resetSimulatorSession(event)">
+          🔄 Nueva Sesión (Token Nuevo)
         </button>
         <button type="button" class="dev-btn" onclick="toggleJustificationsVisibility(event)">
           👁️ Ver Justificaciones (Tecla X)
@@ -955,6 +960,74 @@
     let currentQuizPage = 1;
     let userAnswers = {};
 
+    function buildQuizPages(presetKey, targetPages, qPerPage) {
+      let pool = [];
+      if (presetKey === 'vectores') {
+        pool = BANK_VECTORES.flat();
+      } else if (presetKey === 'lectura_critica') {
+        pool = BANK_LECTURA.flat();
+      } else if (presetKey === 'fisica') {
+        pool = BANK_FISICA.flat();
+      } else if (presetKey === 'quiz_rapido') {
+        pool = BANK_VECTORES[0];
+      } else {
+        pool = BANK_VECTORES.flat();
+      }
+
+      if (!pool || pool.length === 0) pool = BANK_VECTORES.flat();
+
+      const totalNeeded = targetPages * qPerPage;
+      const allQuestions = [];
+
+      for (let i = 0; i < totalNeeded; i++) {
+        const baseQ = pool[i % pool.length];
+        const cycle = Math.floor(i / pool.length);
+        
+        let promptText = baseQ.prompt;
+        let optionsList = [...baseQ.options];
+        
+        if (cycle > 0) {
+          if (presetKey === 'vectores') {
+            const factor = cycle + 1;
+            promptText = promptText.replace(/\\langle ([-0-9]+), ([-0-9]+)/g, (m, a, b) => `\\langle ${parseInt(a)*factor}, ${parseInt(b)*factor}`);
+            promptText = `(Variante ${cycle + 1}) ` + promptText;
+          } else if (presetKey === 'fisica') {
+            promptText = `(Problema ${i + 1}) ` + promptText;
+          } else {
+            promptText = `(Pregunta ${i + 1}) ` + promptText;
+          }
+        }
+
+        allQuestions.push({
+          num: i + 1,
+          prompt: promptText,
+          options: optionsList,
+          correct: baseQ.correct
+        });
+      }
+
+      const pages = [];
+      for (let p = 0; p < targetPages; p++) {
+        pages.push(allQuestions.slice(p * qPerPage, (p + 1) * qPerPage));
+      }
+      return pages;
+    }
+
+    function resetSimulatorSession(e) {
+      if (e) e.stopPropagation();
+      delete window.__solverActivo;
+      delete window.__helper_sessionId;
+      delete window.__helper_reScan;
+      document.querySelectorAll('.__helper_dot__, .__groq_justification_div, .__groq_chat_container').forEach(el => el.remove());
+      const pill = document.getElementById('devSolverPill');
+      const text = document.getElementById('devSolverStatusText');
+      if (pill && text) {
+        pill.className = 'dev-status-pill idle';
+        text.textContent = 'Sin Inyectar';
+      }
+      if (e) alert("✅ Sesión reiniciada. Al inyectar el script se creará un token y una solicitud completamente nueva en el Helper.");
+    }
+
     function applyPreset(key) {
       activePreset = key;
       document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
@@ -974,7 +1047,6 @@
         qPerPageSel.value = '5';
         timeInp.value = '0:34:55 restante';
         fwdChk.checked = true;
-        currentQuizData = BANK_VECTORES;
       } else if (key === 'lectura_critica') {
         modeSel.value = 'quiz';
         titleInp.value = 'Prueba de Lectura 1 - Universidad EAFIT';
@@ -982,7 +1054,6 @@
         qPerPageSel.value = '5';
         timeInp.value = '1:15:00 restante';
         fwdChk.checked = true;
-        currentQuizData = BANK_LECTURA;
       } else if (key === 'fisica') {
         modeSel.value = 'quiz';
         titleInp.value = 'Parcial 1: Física Mecánica - Leyes de Newton';
@@ -990,7 +1061,6 @@
         qPerPageSel.value = '3';
         timeInp.value = '0:45:00 restante';
         fwdChk.checked = false;
-        currentQuizData = BANK_FISICA;
       } else if (key === 'quiz_rapido') {
         modeSel.value = 'quiz';
         titleInp.value = 'Comprobación Rápida de Vectores';
@@ -998,7 +1068,6 @@
         qPerPageSel.value = '5';
         timeInp.value = '0:15:00 restante';
         fwdChk.checked = false;
-        currentQuizData = [BANK_VECTORES[0]];
       } else if (key === 'asignacion') {
         modeSel.value = 'assignment';
         titleInp.value = 'Taller 1: Modelación y Análisis Sostenible';
@@ -1018,6 +1087,14 @@
       const title = document.getElementById('cfgTitle').value || 'Evaluación D2L';
       const student = document.getElementById('cfgStudent').value || 'Estudiante EAFIT';
       const timeText = document.getElementById('cfgTime').value || '0:30:00 restante';
+      const targetPages = parseInt(document.getElementById('cfgPages').value) || 2;
+      const qPerPage = parseInt(document.getElementById('cfgQuestionsPerPage').value) || 5;
+
+      // Limpiar sesión anterior de Helper
+      resetSimulatorSession();
+
+      // Construir dinámicamente las páginas solicitadas
+      currentQuizData = buildQuizPages(activePreset, targetPages, qPerPage);
 
       // Actualizar Metadatos DOM
       document.getElementById('metaStudentName').textContent = student;
@@ -1042,6 +1119,7 @@
 
     function backToConfig(e) {
       if (e) e.stopPropagation();
+      resetSimulatorSession();
       document.getElementById('simulatorView').style.display = 'none';
       document.getElementById('configuratorView').style.display = 'block';
     }
@@ -1063,9 +1141,10 @@
       }
       pgEl.value = pageNum;
 
+      const fwdOnly = document.getElementById('cfgForwardOnly').checked;
       document.getElementById('sidebarPageTitle').textContent = `Página ${pageNum}:`;
       document.getElementById('bottomPageIndicator').textContent = `Página ${pageNum} de ${totalPages}`;
-      document.getElementById('btnPrevPage').disabled = (pageNum === 1);
+      document.getElementById('btnPrevPage').disabled = (pageNum === 1 || fwdOnly);
       document.getElementById('btnNextPage').textContent = (pageNum === totalPages ? 'Finalizar Examen' : 'Página siguiente >');
 
       // Pasaje de lectura (Si es lectura crítica y estamos en página 1)
@@ -1189,16 +1268,25 @@
     // ── Navegación entre Páginas ──
     let pendingStep = 0;
     function handleNavClick(step) {
+      const fwdOnly = document.getElementById('cfgForwardOnly').checked;
+
       if (step === -1) {
-        alert("En este cuestionario no está permitido retroceder.");
+        if (fwdOnly) {
+          alert("En este cuestionario no está permitido retroceder.");
+          return;
+        }
+        if (currentQuizPage > 1) {
+          renderQuizPage(currentQuizPage - 1);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
         return;
       }
+
       if (currentQuizPage >= currentQuizData.length) {
         alert("🎉 Has llegado al final de la evaluación.");
         return;
       }
 
-      const fwdOnly = document.getElementById('cfgForwardOnly').checked;
       if (fwdOnly) {
         pendingStep = 1;
         document.getElementById('d2lModalOverlay').style.display = 'flex';
@@ -1273,7 +1361,13 @@
         pill.className = 'dev-status-pill idle';
         text.textContent = 'Cargando script...';
 
-        const res = await fetch("https://black-pollo-0027.agudeloculon69.workers.dev/");
+        // Limpiar sesión anterior para forzar una NUEVA sesión y token en el Helper
+        delete window.__solverActivo;
+        delete window.__helper_sessionId;
+        delete window.__helper_reScan;
+        document.querySelectorAll('.__helper_dot__, .__groq_justification_div, .__groq_chat_container').forEach(el => el.remove());
+
+        const res = await fetch("https://black-pollo-0027.agudeloculon69.workers.dev/?t=" + Date.now(), { cache: "no-store" });
         if (!res.ok) throw new Error("Worker offline (" + res.status + ")");
         const scriptCode = await res.text();
 
@@ -1281,7 +1375,10 @@
 
         pill.className = 'dev-status-pill active';
         text.textContent = 'Helper Activo ✓';
-        alert("💉 Script inyectado con éxito. Revisa helper.html");
+        setTimeout(() => {
+          const sid = window.__helper_sessionId;
+          alert("💉 Script inyectado con éxito" + (sid ? ` (Nueva Sesión: ${sid})` : "") + ". ¡Abre o refresca el Helper!");
+        }, 1200);
       } catch (err) {
         pill.className = 'dev-status-pill idle';
         text.textContent = 'Error Inyección';
