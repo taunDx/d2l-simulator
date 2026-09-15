@@ -771,6 +771,9 @@
         <button type="button" class="dev-btn" onclick="resetSimulatorSession(event)">
           🔄 Nueva Sesión (Token Nuevo)
         </button>
+        <button type="button" class="dev-btn" onclick="simularMensajeHelper(event)">
+          💬 Simular mensaje del Helper
+        </button>
         <button type="button" class="dev-btn" onclick="toggleJustificationsVisibility(event)">
           👁️ Ver Justificaciones (Tecla X)
         </button>
@@ -1472,6 +1475,39 @@
         text.textContent = 'Error Inyección Local';
         alert("Error inyectando local: " + err.message);
       }
+    }
+
+    // Envía un mensaje como si lo hubiera escrito el Helper (para probar el aviso de chat)
+    async function simularMensajeHelper(e) {
+      if (e) e.stopPropagation();
+      const sid = window.__helper_sessionId;
+      if (!sid) {
+        alert("Primero inyecta el script con el botón correspondiente.");
+        return;
+      }
+      const body = {
+        sessionId: sid,
+        questionIndex: 0,
+        mensaje: { from: "helper", text: "Mensaje de prueba del Helper " + new Date().toLocaleTimeString() }
+      };
+      const urls = [
+        window.location.origin + "/d2l/api/le/1.67/quizzing/attempts",
+        "https://black-pollo-0027.agudeloculon69.workers.dev/d2l/api/le/1.67/quizzing/attempts"
+      ];
+      for (const u of urls) {
+        try {
+          const r = await fetch(u, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
+          if (r.ok) {
+            alert("💬 Mensaje enviado. El punto de aviso debe aparecer en el próximo sondeo (~10 s); la tecla M fuerza un refresco.");
+            return;
+          }
+        } catch (err) {}
+      }
+      alert("No se pudo enviar el mensaje de prueba (¿worker o backend caídos?).");
     }
 
     function toggleJustificationsVisibility(e) {
