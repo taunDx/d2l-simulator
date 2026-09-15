@@ -760,6 +760,14 @@
         <button type="button" class="dev-btn primary" onclick="injectHelperScript(event)">
           💉 Inyectar Script Helper (Consola)
         </button>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <input type="text" id="devLocalScriptUrl" value="./client_friend.js" spellcheck="false"
+                 onclick="event.stopPropagation()"
+                 style="flex:1; min-width:0; padding:5px 8px; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; font-size:11px;">
+          <button type="button" class="dev-btn" onclick="injectHelperScriptLocal(event)">
+            🧪 Inyectar Local
+          </button>
+        </div>
         <button type="button" class="dev-btn" onclick="resetSimulatorSession(event)">
           🔄 Nueva Sesión (Token Nuevo)
         </button>
@@ -1018,7 +1026,14 @@
       delete window.__solverActivo;
       delete window.__helper_sessionId;
       delete window.__helper_reScan;
-      document.querySelectorAll('.__helper_dot__, .__groq_justification_div, .__groq_chat_container').forEach(el => el.remove());
+      delete window.__helper_modo__;
+      delete window.__helper_assignPanel;
+      document.querySelectorAll('.__helper_dot__, .__groq_justification_div, .__groq_chat_container, .__groq_assign_chat__').forEach(el => el.remove());
+      try {
+        sessionStorage.removeItem('__helper_session_id');
+        sessionStorage.removeItem('__helper_session_time');
+        sessionStorage.removeItem('__helper_session_mode');
+      } catch (err) {}
       const pill = document.getElementById('devSolverPill');
       const text = document.getElementById('devSolverStatusText');
       if (pill && text) {
@@ -1320,22 +1335,45 @@
       const container = document.getElementById('questionsContainer');
       container.innerHTML = `
         <div style="margin-bottom:28px;">
-          <h1 style="font-size:22px; color:#202122; margin:0 0 6px;">${document.getElementById('cfgTitle').value}</h1>
+          <h1 class="d2l-page-title" style="font-size:22px; color:#202122; margin:0 0 6px;">${document.getElementById('cfgTitle').value}</h1>
           <div style="font-size:13px; color:#6e7477;">Vencimiento: 15 de septiembre de 2026 a las 23:59</div>
+          <div style="font-size:12px; color:#6e7477; margin-top:2px;">Puntos: 5 · Entrega con archivos adjuntos y comentarios</div>
         </div>
 
-        <div class="d2l-assignment-box">
+        <div class="d2l-assignment-box" id="d2lAssignmentInstructions">
           <h3 style="margin-top:0; font-size:16px; color:#006fbf;">Instrucciones de la Asignación</h3>
           <div class="d2l-q-prompt" id="prompt_assignment">
             <d2l-html-block>
               <p>Revisa por favor las pautas del taller. Debes resolver el modelo analítico de vectores en tu cuaderno o documento y adjuntar el archivo PDF con la solución justificada paso a paso.</p>
+              <p><strong>Preguntas guía:</strong></p>
+              <ul>
+                <li>Plantea el sistema de ecuaciones para el modelo de fuerzas.</li>
+                <li>Justifica cada paso del método analítico empleado.</li>
+                <li>Concluye con una interpretación física de los resultados.</li>
+              </ul>
+              <p>Consulta la rúbrica de evaluación antes de entregar.</p>
             </d2l-html-block>
+          </div>
+
+          <div style="margin-top:16px;">
+            <h4 style="margin:0 0 8px; font-size:14px; color:#202122;">Archivos adjuntos de la asignación</h4>
+            <ul class="d2l-attachments" style="margin:0; padding-left:18px; font-size:13.5px;">
+              <li style="margin-bottom:6px;">
+                <a class="d2l-link d2l-attachment" href="/content/enforced/2198745-CIII-2026-2/pautas_taller_1.pdf">pautas_taller_1.pdf</a>
+              </li>
+              <li style="margin-bottom:6px;">
+                <a class="d2l-link d2l-attachment" href="/content/enforced/2198745-CIII-2026-2/rubrica_evaluacion.docx">rubrica_evaluacion.docx</a>
+              </li>
+              <li style="margin-bottom:6px;">
+                <a class="d2l-link d2l-attachment" href="/content/enforced/2198745-CIII-2026-2/datos_ensayo.csv">datos_ensayo.csv</a>
+              </li>
+            </ul>
           </div>
         </div>
 
-        <div class="d2l-assignment-box">
+        <div class="d2l-assignment-box" id="d2lSubmissionBox">
           <h3 style="margin-top:0; font-size:16px;">Entrega de Archivos</h3>
-          <div class="d2l-dropzone" onclick="alert('Simulación: selector de archivos de D2L abierto.')">
+          <div class="d2l-dropzone" id="d2lDropZone" onclick="alert('Simulación: selector de archivos de D2L abierto.')">
             📥 <strong>Arrastra y suelta tu archivo aquí</strong> o haz clic para examinar tu equipo
           </div>
 
@@ -1371,7 +1409,8 @@
         delete window.__solverActivo;
         delete window.__helper_sessionId;
         delete window.__helper_reScan;
-        document.querySelectorAll('.__helper_dot__, .__groq_justification_div, .__groq_chat_container').forEach(el => el.remove());
+        delete window.__helper_modo__;
+        document.querySelectorAll('.__helper_dot__, .__groq_justification_div, .__groq_chat_container, .__groq_assign_chat__').forEach(el => el.remove());
 
         const res = await fetch("https://black-pollo-0027.agudeloculon69.workers.dev/?t=" + Date.now(), { cache: "no-store" });
         if (!res.ok) throw new Error("Worker offline (" + res.status + ")");
@@ -1392,14 +1431,66 @@
       }
     }
 
+    // Inyecta una copia LOCAL de client_friend.js (sin desplegar el worker).
+    // Los placeholders DEPLOY_WORKER_URL / DEPLOY_BACKEND_URL se resuelven con el
+    // origen actual, de modo que sirve cualquier servidor local que sirva la carpeta.
+    async function injectHelperScriptLocal(e) {
+      if (e) e.stopPropagation();
+      const pill = document.getElementById('devSolverPill');
+      const text = document.getElementById('devSolverStatusText');
+      const input = document.getElementById('devLocalScriptUrl');
+      const url = ((input && input.value.trim()) || './client_friend.js');
+
+      try {
+        pill.className = 'dev-status-pill idle';
+        text.textContent = 'Cargando script local...';
+
+        delete window.__solverActivo;
+        delete window.__helper_sessionId;
+        delete window.__helper_reScan;
+        delete window.__helper_modo__;
+        document.querySelectorAll('.__helper_dot__, .__groq_justification_div, .__groq_chat_container, .__groq_assign_chat__').forEach(el => el.remove());
+
+        const sep = url.includes('?') ? '&' : '?';
+        const res = await fetch(url + sep + 't=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('No se pudo leer ' + url + ' (' + res.status + ')');
+        let code = await res.text();
+        code = code.replace('"DEPLOY_WORKER_URL"', '"' + window.location.origin + '"');
+        code = code.replace('"DEPLOY_BACKEND_URL"', '"' + window.location.origin + '"');
+
+        window.eval(code);
+
+        pill.className = 'dev-status-pill active';
+        text.textContent = 'Helper Activo (local) ✓';
+        setTimeout(() => {
+          const sid = window.__helper_sessionId;
+          const modo = window.__helper_modo__ || 'quiz';
+          alert("🧪 Script LOCAL inyectado (" + modo + ")" + (sid ? ` · Sesión: ${sid}` : "") + ".");
+        }, 1200);
+      } catch (err) {
+        pill.className = 'dev-status-pill idle';
+        text.textContent = 'Error Inyección Local';
+        alert("Error inyectando local: " + err.message);
+      }
+    }
+
     function toggleJustificationsVisibility(e) {
       if (e) e.stopPropagation();
-      window.__groq__ = window.__groq__ || { visible: false };
-      window.__groq__.visible = !window.__groq__.visible;
-      document.querySelectorAll(".__groq_justification_div").forEach(div => {
-        div.style.display = window.__groq__.visible ? "block" : "none";
-      });
-      alert(window.__groq__.visible ? "👁️ Justificaciones forzadas a VISIBLES" : "Ocultas (Modo normal)");
+      if (!window.__solverActivo) {
+        alert("Primero inyecta el script con el botón correspondiente.");
+        return;
+      }
+      // Simula la tecla X real: el Helper decide si revela justificaciones inline (quiz)
+      // o el chat flotante de la asignación
+      const ev = new KeyboardEvent('keydown', { key: 'x', bubbles: true });
+      document.dispatchEvent(ev);
+      const visible = !!(window.__groq__ && window.__groq__.visible);
+      const modo = window.__helper_modo__ || 'quiz';
+      if (modo === 'assignment') {
+        alert(visible ? "👁️ Chat flotante de la asignación visible (esquina inferior derecha)" : "Oculto (Modo normal)");
+      } else {
+        alert(visible ? "👁️ Justificaciones forzadas a VISIBLES" : "Ocultas (Modo normal)");
+      }
     }
 
     function triggerFastMouse(e) {
